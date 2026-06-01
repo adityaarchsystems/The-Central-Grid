@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CentralGridLandingFloor() {
+  const router = useRouter();
+
   // Hydration & Mount State
   const [isMounted, setIsMounted] = useState(false);
 
@@ -13,6 +16,7 @@ export default function CentralGridLandingFloor() {
   const [github, setGithub] = useState("");
   const [location, setLocation] = useState("bhilai");
   const [submitted, setSubmitted] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; github?: string }>({});
 
   // Custom Dropdown Open States
@@ -97,8 +101,9 @@ export default function CentralGridLandingFloor() {
     }
   };
 
-  const handleManifestSubmit = (e: React.FormEvent) => {
+  const handleManifestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isParsing) return;
     const newErrors: { email?: string; github?: string } = {};
 
     if (!validateEmail(email)) {
@@ -115,7 +120,38 @@ export default function CentralGridLandingFloor() {
     }
 
     setErrors({});
-    setSubmitted(true);
+    setIsParsing(true);
+
+    try {
+      const response = await fetch("/api/ingress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          engineeringVector: vector,
+          githubUrl: github,
+          emailEndpoint: email,
+          baseLocation: location,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        router.push("/dashboard/audit");
+      } else {
+        setErrors({
+          github: data.error || "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS",
+        });
+        setIsParsing(false);
+      }
+    } catch {
+      setErrors({
+        github: "[LINT_FAIL]: SYSTEM_PARSING_COMPILER_EXCEPTION",
+      });
+      setIsParsing(false);
+    }
   };
 
   const handleMagazineSubmit = (e: React.FormEvent) => {
@@ -340,9 +376,10 @@ export default function CentralGridLandingFloor() {
                   <button 
                     id="submit-manifest-button"
                     type="submit" 
-                    className="w-full bg-white hover:bg-neutral-200 text-black font-mono font-medium py-3 rounded text-[11px] tracking-widest uppercase transition-all duration-200 mt-4 active:scale-[0.98] cursor-pointer"
+                    disabled={isParsing}
+                    className="w-full bg-white hover:bg-neutral-200 text-black font-mono font-medium py-3 rounded text-[11px] tracking-widest uppercase transition-all duration-200 mt-4 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    SUBMIT SPECIFICATION MANIFEST
+                    {isParsing ? "// PARSING_TELEMETRY..." : "SUBMIT SPECIFICATION MANIFEST"}
                   </button>
                 </form>
               ) : (
