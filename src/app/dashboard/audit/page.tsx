@@ -186,7 +186,7 @@ export default function CapabilityAuditPage() {
       </div>
 
       {/* DYNAMIC COMPILATION TERMINAL WINDOW */}
-      <div className="space-y-3">
+      <div className="border-t border-[#120e1e] pt-6 mt-8 w-full block">
         <h3 className="font-mono text-[12px] uppercase tracking-wider text-neutral-400 flex items-center gap-2 select-none">
           <span className="w-1.5 h-1.5 bg-[#c084fc] rounded-full animate-pulse" />
           // TERMINAL_VALIDATION_COMPILER_STREAM

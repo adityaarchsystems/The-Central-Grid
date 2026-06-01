@@ -66,8 +66,8 @@ export default function ComputeNetworkPage() {
             Unified command node dashboard tracking hardware cluster metrics and secure developer handshakes.
           </p>
         </div>
-        <div className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest bg-[#0b0714] border border-white/5 px-4 py-2 rounded">
-          SYSTEM_TIME: <span className="text-white select-text">{systemTime}</span>
+        <div className="font-mono text-[10px] text-neutral-500 uppercase tracking-widest bg-[#0b0714] border border-white/5 px-4 py-2 rounded" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          SYSTEM_TIME: <span className="text-white select-text uppercase">{systemTime}</span>
         </div>
       </div>
 
