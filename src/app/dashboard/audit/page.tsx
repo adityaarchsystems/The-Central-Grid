@@ -15,7 +15,14 @@ export default function CapabilityAuditPage() {
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const isTerminalHovered = useRef(false);
-  const [isSweeping, setIsSweeping] = useState(false);
+  const [dots, setDots] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
 
   const mockEntries: AuditEntry[] = [
     { ingressId: "INGRESS_NODE_0492", targetVector: "AI Core & Local Inference", githubFootprintStatus: "VERIFIED", commitFrequency: "482 commits/yr", auditStatus: "CLEAR" },
@@ -74,20 +81,6 @@ export default function CapabilityAuditPage() {
     }
   }, [terminalLogs]);
 
-  const triggerManualSweep = () => {
-    setIsSweeping(true);
-    setTerminalLogs((prev) => [
-      ...prev,
-      `[USER_ACTION // ${new Date().toISOString()}]: FORCING SYSTEM-WIDE TELEMETRY RE-SWEEP...`,
-      "[AUDIT]: Flushing pipeline caches...",
-      "[AUDIT]: Querying Active GitHub commit databases...",
-      "[AUDIT]: Parsing structural repo patterns... CLEAR"
-    ]);
-
-    setTimeout(() => {
-      setIsSweeping(false);
-    }, 1500);
-  };
 
   if (!isMounted) return <div className="min-h-screen bg-[#06030a]" />;
 
@@ -132,13 +125,6 @@ export default function CapabilityAuditPage() {
           <h3 className="font-mono text-[12px] uppercase tracking-wider text-neutral-400">
             // INGRESS_VALIDATION_LEDGER
           </h3>
-          <button
-            onClick={triggerManualSweep}
-            disabled={isSweeping}
-            className={`font-mono text-[10px] tracking-widest px-3 py-1.5 rounded border border-[#120e1e] uppercase bg-black text-[#c084fc] hover:bg-[#120e1e] hover:text-white transition-all cursor-pointer select-none active:scale-[0.98] ${isSweeping ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            {isSweeping ? "SWEEPING..." : "TRIGGER MANUAL AUDIT"}
-          </button>
         </div>
 
         <div className="border border-white/5 rounded-lg bg-[#0b0714]/25 overflow-x-auto">
@@ -175,15 +161,22 @@ export default function CapabilityAuditPage() {
                   </td>
                   <td className="py-4 px-6 text-left text-[11px] text-neutral-500">{entry.commitFrequency}</td>
                   <td className="py-4 px-6 text-right">
-                    <span className={`font-bold ${
-                      entry.auditStatus === "CLEAR" 
-                        ? "text-[#22c55e]" 
-                        : entry.auditStatus === "ERROR"
-                        ? "text-red-400"
-                        : "text-[#c084fc] animate-pulse"
-                    }`}>
-                      {entry.auditStatus}
-                    </span>
+                    {entry.auditStatus === "CLEAR" ? (
+                      <span className="text-[#22c55e] font-bold inline-flex items-center gap-1.5 justify-end">
+                        <span>CLEAR</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
+                        <span className="text-[10px] tracking-widest text-[#22c55e] opacity-80 animate-pulse font-mono">[ OK // SECURE ]</span>
+                      </span>
+                    ) : entry.auditStatus === "WAITING" ? (
+                      <span className="text-[#c084fc] font-bold inline-flex items-center justify-end">
+                        <span>WAITING</span>
+                        <span className="inline-block min-w-[12px] text-left ml-0.5">{dots}</span>
+                      </span>
+                    ) : (
+                      <span className="text-red-400 font-bold">
+                        {entry.auditStatus}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

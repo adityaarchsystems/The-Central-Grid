@@ -174,7 +174,7 @@ PersistentKeepalive = 25`
             </h3>
           </div>
           
-          <div className="flex flex-col gap-3 font-mono text-[12px] h-[550px] overflow-y-auto pr-2">
+          <div className="flex flex-col gap-3 font-mono text-[12px] pr-2">
             {registryEntries.map((entry) => {
               const isSelected = entry.id === selectedEntryId;
               return (
@@ -206,10 +206,9 @@ PersistentKeepalive = 25`
         </section>
 
         {/* RIGHT COLUMN: DOCUMENT CANVAS FRAME (8 COLUMNS) */}
-        <section className="lg:col-span-8 bg-[#0b0714]/20 border border-white/5 rounded-xl p-6 md:p-8 flex flex-col justify-between space-y-6 h-[550px] overflow-y-auto select-text">
+        <section className="lg:col-span-8 bg-[#0b0714]/20 border border-white/5 rounded-xl px-6 pb-6 md:px-8 md:pb-8 pt-0 flex flex-col justify-between space-y-6 select-text">
           
-          {/* Document Header & Details */}
-          <div className="space-y-4">
+          <div className="sticky top-[68px] bg-[#06030a] z-20 pt-8 pb-4 border-b border-[#120e1e] mb-6">
             <div className="flex justify-between items-center border-b border-white/5 pb-3">
               <span className="font-mono text-[10px] text-[#c084fc] uppercase tracking-widest">
                 // ACTIVE_SPECIFICATION_HANDSHAKE
@@ -219,11 +218,11 @@ PersistentKeepalive = 25`
               </span>
             </div>
 
-            <h2 className="text-[20px] md:text-[24px] font-bold text-white uppercase tracking-tight font-sans">
+            <h2 className="text-[20px] md:text-[24px] font-bold text-white uppercase tracking-tight font-sans mt-4">
               {activeEntry.title}
             </h2>
 
-            <p className="text-[13.5px] leading-relaxed text-neutral-400 font-light font-sans">
+            <p className="text-[13.5px] leading-relaxed text-neutral-400 font-light font-sans mt-2">
               {activeEntry.description}
             </p>
           </div>
