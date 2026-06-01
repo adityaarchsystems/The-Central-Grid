@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface AuditEntry {
   ingressId: string;
@@ -26,150 +27,122 @@ export default function CapabilityAuditPage() {
 
   const [entries, setEntries] = useState<AuditEntry[]>([]);
 
-  // Initial terminal simulation strings
-  const initialLogs = [
-    "[AUDIT]: Starting capability verification loop...",
-    "[AUDIT]: Accessing local network corridor gateways...",
-    "[AUDIT]: Initializing git-footprint telemetry pipeline...",
-    "[AUDIT]: Connecting to regional API endpoints... SECURE",
-    "[AUDIT]: Parsing structural repo patterns... CLEAR",
-  ];
+  // Simulated log streamer helper
+  const addLog = (log: string) => {
+    setTerminalLogs((prev) => [...prev, log]);
+  };
 
-  // Simulated log streamer
   useEffect(() => {
     setIsMounted(true);
 
+    const vectorLabelMap: Record<string, string> = {
+      fullstack: "Full Stack Optimization",
+      frontend: "UI/UX Systems & Frontend",
+      ai: "AI Core & Local Inference",
+      devops: "DevOps & Edge Architecture"
+    };
+
     const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
-    let userRow: AuditEntry;
-    let streamLogs: string[];
-    let streamItems: string[];
-
-    const possibleUsernames = [
-      "STACK_ARCHITECT", "DEV_CORE_ALPHA", "INF_NODE_X", "EDGE_ROUTING_PEER", 
-      "ML_SWARM_LEAD", "PROT_GATE_WAY", "CENTRAL_GATE", "METRO_CORE", 
-      "VRAM_LIMIT_CONT", "STAGING_ANCHOR"
-    ];
-
-    const vectors = [
-      "AI Core & Local Inference",
-      "UI/UX Systems & Frontend",
-      "DevOps & Edge Architecture",
-      "Full Stack Optimization"
-    ];
+    let initialStreamLogs: string[] = [];
 
     if (stored) {
-      let session = {
-        username: "guest_builder",
-        email: "guest@centralgrid.com",
-        vector: "fullstack"
-      };
       try {
-        session = JSON.parse(stored);
+        const session = JSON.parse(stored);
+        initialStreamLogs = [
+          `[AUDIT]: Starting capability verification loop for ${session.username || "guest_builder"}...`,
+          `[AUDIT]: Accessing local network corridor gateways...`,
+          `[AUDIT]: Initializing git-footprint telemetry pipeline for ${session.email || "guest@centralgrid.com"}...`,
+          `[AUDIT]: Connecting to regional API endpoints... SECURE`,
+          `[AUDIT]: Parsing structural repo patterns for ${(session.vector || "fullstack").toUpperCase()}... CLEAR`,
+        ];
       } catch (e) {
         console.error("Failed to parse tcg_session_manifest:", e);
       }
+    }
 
-      const vectorLabelMap: Record<string, string> = {
-        fullstack: "Full Stack Optimization",
-        frontend: "UI/UX Systems & Frontend",
-        ai: "AI Core & Local Inference",
-        devops: "DevOps & Edge Architecture"
-      };
-      
-      const userVectorLabel = vectorLabelMap[session.vector] || "Full Stack Optimization";
-
-      userRow = {
-        ingressId: `ING_${session.username.toUpperCase()}`,
-        targetVector: userVectorLabel,
-        githubFootprintStatus: "VERIFIED",
-        commitFrequency: "LIVE_TIMELINE_ACTIVE",
-        auditStatus: "CLEAR"
-      };
-
-      streamLogs = [
-        `[AUDIT]: Starting capability verification loop for ${session.username}...`,
-        `[AUDIT]: Accessing local network corridor gateways...`,
-        `[AUDIT]: Initializing git-footprint telemetry pipeline for ${session.email}...`,
-        `[AUDIT]: Connecting to regional API endpoints... SECURE`,
-        `[AUDIT]: Parsing structural repo patterns for ${session.vector.toUpperCase()}... CLEAR`,
-      ];
-
-      streamItems = [
-        `[AUDIT]: User session detected for ${session.email.toUpperCase()}...`,
-        `[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE`,
-        `[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE`,
-        `[AUDIT]: Evaluating Ingress ID ING_${session.username.toUpperCase()} github footprint...`,
-        `[AUDIT]: Computing delta commit patterns... STABLE`,
-        `[AUDIT]: Parsing structural repo patterns... CLEAR`,
-        `[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms`,
-        `[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES`,
-        `[AUDIT]: Handshake status for ING_${session.username.toUpperCase()}... APPROVED`,
-        `[AUDIT]: Waiting for next telemetry ingress sequence...`,
-      ];
-    } else {
-      userRow = {
-        ingressId: "ING_GUEST_NODE",
-        targetVector: "UNASSIGNED // DEPLOYMENT_PENDING",
-        githubFootprintStatus: "INACTIVE",
-        commitFrequency: "INACTIVE_PORT_UPLINK",
-        auditStatus: "INACTIVE"
-      };
-
-      streamLogs = [
+    if (initialStreamLogs.length === 0) {
+      initialStreamLogs = [
         `[SYSTEM_INTEGRITY]: Awaiting secure socket handshake...`,
         `[SYSTEM_INTEGRITY]: Listening on loopback interface 127.0.0.1...`,
-        `[SYSTEM_INTEGRITY]: Telemetry manifest ingestion state: UNASSIGNED`,
+        `[SYSTEM_INTEGRITY]: Telemetry manifest ingestion state: ACTIVE`,
         `[SYSTEM_INTEGRITY]: Secure compilation pipeline idle...`,
         `[SYSTEM_INTEGRITY]: Awaiting onboarding intake manifest authentication...`,
       ];
-
-      streamItems = [
-        `[SYSTEM_INTEGRITY]: Port listener initialized on port 80...`,
-        `[SYSTEM_INTEGRITY]: Scanning for transit payload packets... IDLE`,
-        `[SYSTEM_INTEGRITY]: No active session manifest signature detected...`,
-        `[SYSTEM_INTEGRITY]: Sandbox compilation buffer is blank...`,
-        `[SYSTEM_INTEGRITY]: Loopback interface ping to gateway Raipur-Hub-01... 0.4ms`,
-        `[SYSTEM_INTEGRITY]: Network socket authentication pending...`,
-        `[SYSTEM_INTEGRITY]: Waiting for next telemetry ingress sequence...`,
-      ];
     }
+    setTerminalLogs(initialStreamLogs);
 
-    const procedurals = possibleUsernames.map((uname, index) => {
-      const targetVector = vectors[index % vectors.length];
-      const footprint = index % 3 === 2 ? "FLAGGED" : index % 3 === 1 ? "COMPILING" : "VERIFIED";
-      const status: "CLEAR" | "WAITING" | "ERROR" = footprint === "FLAGGED" ? "ERROR" : footprint === "COMPILING" ? "WAITING" : "CLEAR";
-      const commits = `${Math.floor(140 + Math.random() * 1040)} commits/yr`;
-      
-      return {
-        ingressId: `ING_${uname}`,
-        targetVector,
-        githubFootprintStatus: footprint,
-        commitFrequency: commits,
-        auditStatus: status
-      } as AuditEntry;
-    });
+    // 1. Initial Cold Rehydration Survey targeting profiles
+    const fetchProfiles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(10);
 
-    const shuffled = [...procedurals].sort(() => 0.5 - Math.random()).slice(0, 5);
+        if (error) {
+          addLog(`[DATABASE_ERROR]: Failed to query public.profiles: ${error.message}`);
+          return;
+        }
 
-    const initialEntries: AuditEntry[] = [
-      userRow,
-      ...shuffled
-    ];
-    setEntries(initialEntries);
-    setTerminalLogs(streamLogs);
-
-    let count = 0;
-    const interval = setInterval(() => {
-      if (count < streamItems.length) {
-        setTerminalLogs((prev) => [...prev, streamItems[count]]);
-        count++;
-      } else {
-        count = 0; // Loop logs
-        setTerminalLogs(streamLogs);
+        if (data) {
+          const mapped: AuditEntry[] = data.map((profile) => ({
+            ingressId: `ING_${(profile.github_username || "").toUpperCase()}`,
+            targetVector: vectorLabelMap[profile.engineering_vector] || profile.engineering_vector || "Full Stack Optimization",
+            githubFootprintStatus: profile.ingress_status || "VERIFIED",
+            commitFrequency: profile.commit_frequency || "LIVE_TIMELINE_ACTIVE",
+            auditStatus: profile.audit_status || "CLEAR",
+          }));
+          setEntries(mapped);
+          addLog(`[AUDIT]: Cold rehydration survey complete. Loaded ${data.length} records.`);
+        }
+      } catch (e: any) {
+        addLog(`[SYSTEM_ERROR]: Exception during cold query initialization: ${e?.message || e}`);
       }
-    }, 4000);
+    };
 
-    return () => clearInterval(interval);
+    fetchProfiles();
+
+    // 2. Establish living Supabase Realtime Subscription Channel mapping to INSERT events on public.profiles
+    const channel = supabase
+      .channel("public-profiles-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "profiles",
+        },
+        (payload) => {
+          const newProfile = payload.new;
+          addLog(`[WEBSOCKET_RECEIVE]: Authentic postgres insert broadcast captured! GitHub username: ${newProfile.github_username}`);
+          
+          const newEntry: AuditEntry = {
+            ingressId: `ING_${(newProfile.github_username || "").toUpperCase()}`,
+            targetVector: vectorLabelMap[newProfile.engineering_vector] || newProfile.engineering_vector || "Full Stack Optimization",
+            githubFootprintStatus: newProfile.ingress_status || "VERIFIED",
+            commitFrequency: newProfile.commit_frequency || "LIVE_TIMELINE_ACTIVE",
+            auditStatus: newProfile.audit_status || "CLEAR",
+          };
+
+          setEntries((prev) => {
+            // Prepend new row straight into index structure and restrict matrix cap strictly to 10
+            const combined = [newEntry, ...prev];
+            return combined.slice(0, 10);
+          });
+
+          addLog(`[AUDIT]: Dynamic row node ING_${(newProfile.github_username || "").toUpperCase()} prepended to validation ledger grid.`);
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          addLog("[WEBSOCKET]: Active real-time WebSocket channel subscribed to public.profiles.");
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Scroll to bottom of terminal only when user is hovered on the terminal
@@ -179,8 +152,26 @@ export default function CapabilityAuditPage() {
     }
   }, [terminalLogs]);
 
-
-  if (!isMounted) return <div className="min-h-screen bg-[#06030a]" />;
+  if (!isMounted) {
+    return (
+      <div className="space-y-10 text-left animate-fadeIn">
+        <div className="border-b border-white/5 pb-4">
+          <div className="h-4 w-32 bg-neutral-800 rounded animate-pulse mb-2" />
+          <div className="h-8 w-64 bg-neutral-800 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="h-20 bg-neutral-900/40 border border-white/5 rounded-lg animate-pulse" />
+          <div className="h-20 bg-neutral-900/40 border border-white/5 rounded-lg animate-pulse" />
+          <div className="h-20 bg-neutral-900/40 border border-white/5 rounded-lg animate-pulse" />
+        </div>
+        <div className="border border-white/5 rounded-lg bg-neutral-900/20 p-6 space-y-4">
+          <div className="h-6 w-full bg-neutral-800 rounded animate-pulse" />
+          <div className="h-6 w-full bg-neutral-800 rounded animate-pulse" />
+          <div className="h-6 w-full bg-neutral-800 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 text-left animate-fadeIn">
@@ -237,15 +228,16 @@ export default function CapabilityAuditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-neutral-400">
-              {entries.map((entry, index) => {
+              {(entries || []).map((entry, index) => {
+                if (!entry) return null;
                 const isGuestNode = entry.ingressId === "ING_GUEST_NODE";
                 return (
                   <tr key={index} className="hover:bg-white/[0.02] transition-colors duration-150">
                     <td className={`py-4 px-6 text-left font-medium ${isGuestNode ? "text-neutral-500/80" : "text-white"}`}>
-                      {entry.ingressId}
+                      {entry.ingressId || ""}
                     </td>
                     <td className={`py-4 px-6 text-left ${isGuestNode ? "text-neutral-500/80" : "text-neutral-400"}`}>
-                      {entry.targetVector}
+                      {entry.targetVector || ""}
                     </td>
                     <td className="py-4 px-6 text-left">
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-mono ${
@@ -268,10 +260,10 @@ export default function CapabilityAuditPage() {
                             ? "bg-neutral-600"
                             : "bg-[#c084fc] animate-pulse"
                         }`} />
-                        {entry.githubFootprintStatus}
+                        {entry.githubFootprintStatus || "VERIFIED"}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-left text-[11px] text-neutral-500">{entry.commitFrequency}</td>
+                    <td className="py-4 px-6 text-left text-[11px] text-neutral-500">{entry.commitFrequency || ""}</td>
                     <td className="py-4 px-6 text-right">
                       {entry.auditStatus === "CLEAR" ? (
                         <span className="text-[#22c55e] font-bold inline-flex items-center gap-1.5 justify-end">
@@ -290,7 +282,7 @@ export default function CapabilityAuditPage() {
                         </span>
                       ) : (
                         <span className="text-red-400 font-bold">
-                          {entry.auditStatus}
+                          {entry.auditStatus || ""}
                         </span>
                       )}
                     </td>
@@ -319,7 +311,8 @@ export default function CapabilityAuditPage() {
           </div>
           
           <div className="flex-1 space-y-1 bg-transparent pr-2">
-            {terminalLogs.map((log, idx) => {
+            {(terminalLogs || []).map((log, idx) => {
+              if (typeof log !== "string") return null;
               let colorClass = "text-neutral-400";
               if (log.includes("CLEAR") || log.includes("SECURE") || log.includes("APPROVED")) {
                 colorClass = "text-[#22c55e]";

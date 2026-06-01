@@ -25,7 +25,7 @@ export default function ComputeNetworkPage() {
 
     // Pull saved system profile context tokens
     let session = {
-      username: "guest_builder",
+      username: "adityaarchsystems",
       email: "guest@centralgrid.com",
       vector: "fullstack"
     };
@@ -33,7 +33,12 @@ export default function ComputeNetworkPage() {
     const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
     if (stored) {
       try {
-        session = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        session = {
+          username: parsed.username || "adityaarchsystems",
+          email: parsed.email || "guest@centralgrid.com",
+          vector: parsed.vector || "fullstack"
+        };
       } catch (e) {
         console.error("Failed to parse tcg_session_manifest:", e);
       }
@@ -121,13 +126,17 @@ export default function ComputeNetworkPage() {
     }
 
     const initialNodes: ComputeNode[] = [
-      { identifier: "MASTER_NODE_ALPHA", hardware: "RTX 5060 Ti 16GB", engine: "f5-tts_flow_match // VBR", baseSpeed: 4.0, speedUnit: "x ACCEL", rank: "INFRA_CORE" },
+      { 
+        identifier: "MASTER_NODE_ALPHA", 
+        hardware: "8x NVIDIA H100 SXM5 80GB // AMD EPYC 9654 96-Core", 
+        engine: "f5-tts_flow_match // VBR", 
+        baseSpeed: 4.0, 
+        speedUnit: "x ACCEL", 
+        rank: "INFRA_CORE" 
+      },
+      userNode,
       ...uniqueBackgroundNodes
     ];
-
-    if (stored) {
-      initialNodes.push(userNode);
-    }
 
     setNodes(initialNodes);
 
@@ -150,6 +159,9 @@ export default function ComputeNetworkPage() {
               ...node,
               baseSpeed: parseFloat(nextSpeed.toFixed(1))
             };
+          } else if (node.identifier === "MASTER_NODE_ALPHA") {
+            // Keep master node acceleration speed stable
+            return node;
           } else {
             const variance = (Math.random() * 5 - 2.5) / 100;
             const nextSpeed = node.baseSpeed * (1 + variance);

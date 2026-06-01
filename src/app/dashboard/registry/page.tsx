@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface RegistryEntry {
   id: string;
@@ -20,8 +21,11 @@ export default function CoreBuildRegistryPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState("042");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   const [entries, setEntries] = useState<RegistryEntry[]>([]);
+
+  // Category taxonomy accordion expand trackers & interactive category filters
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("ALL");
 
   const baseEntries: RegistryEntry[] = [
     {
@@ -77,12 +81,12 @@ out.eval()`
         ]
       },
       codePayload: `# Launch vLLM local instance with sandboxed limits
-python -m vllm.entrypoints.openai.api_server \\
-  --model meta-llama/Llama-3.1-8B-Instruct \\
-  --gpu-memory-utilization 0.90 \\
-  --max-model-len 8192 \\
-  --quantization awq \\
-  --port 8000 \\
+python -m vllm.entrypoints.openai.api_server \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --gpu-memory-utilization 0.90 \
+  --max-model-len 8192 \
+  --quantization awq \
+  --port 8000 \
   --host 127.0.0.1`
     },
     {
@@ -145,73 +149,117 @@ PersistentKeepalive = 25`
     }
   ];
 
+  const getHighLevelCategory = (dbCategory: string): "CORE" | "LOCAL_INFERENCE" | "NETWORKING" | "WEB_EDGE" => {
+    const cat = (dbCategory || "").toUpperCase();
+    if (cat.includes("FULLSTACK") || cat.includes("CORE") || cat.includes("SPEECH") || cat.includes("SYNTHESIS")) {
+      return "CORE";
+    }
+    if (cat.includes("INFERENCE") || cat.includes("MODEL") || cat.includes("OPTIMIZATION") || cat.includes("AI")) {
+      return "LOCAL_INFERENCE";
+    }
+    if (cat.includes("ROUTING") || cat.includes("NETWORKING") || cat.includes("WIRE") || cat.includes("MESH")) {
+      return "NETWORKING";
+    }
+    return "WEB_EDGE";
+  };
+
   useEffect(() => {
     setIsMounted(true);
 
-    const nextOptimizeSpec: RegistryEntry = {
-      id: "999",
-      ref: "[ENTRY_REF: #999] // NEXT-OPTIMIZE",
-      title: "NEXT.JS CORE CACHE & BUNDLE ARCHITECTURE",
-      category: "FULLSTACK_OPTIMIZATION",
-      date: "Q2 2026 // RELEASE",
-      description: "Full-stack Next.js cache clearance passes, bundle sizing controls, and static compile architecture benchmarks designed for high-density gateway node routing environments.",
-      tableData: {
-        headers: ["OPTIMIZATION TARGET", "METRIC VALUE", "BENCHMARK STATUS"],
-        rows: [
-          ["Turbopack Build", "1.5s Cold Compile", "Zero route warnings"],
-          ["Next Cache Clearance", "100% Cache Evacuated", "Clean Vercel Sync"],
-          ["Bundle Weight", "48 KB JS Chunk Limit", "Exceeds budgets"],
-          ["Static Page Yield", "8/8 Pre-rendered", "Verified runtime"]
-        ]
-      },
-      codePayload: `# Force-clear server cache and run production build\nRemove-Item -Path ".next" -Force -Recurse -ErrorAction SilentlyContinue\nnpm run build\nvercel deploy --prod --yes`
-    };
-
-    const allSpecs = [nextOptimizeSpec, ...baseEntries];
-
     const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
+    let vector = "fullstack";
+
     if (stored) {
       try {
         const session = JSON.parse(stored);
         setIsAuthenticated(true);
-        const vectorPriorityMap: Record<string, string> = {
-          fullstack: "999",
-          ai: "091",
-          devops: "115",
-          frontend: "042"
-        };
-
-        const targetPriorityId = vectorPriorityMap[session.vector] || "999";
-        const prioritySpec = allSpecs.find(spec => spec.id === targetPriorityId);
-        const otherSpecs = allSpecs.filter(spec => spec.id !== targetPriorityId);
-
-        // Shuffle the background protocol release components dynamically
-        const shuffledOthers = [...otherSpecs].sort(() => 0.5 - Math.random());
-        
-        // Vary their metadata dates programmatically to prevent pre-baked look
-        const dynamicOthers = shuffledOthers.map((spec) => {
-          const randomMinutes = Math.floor(Math.random() * 55 + 5);
-          return {
-            ...spec,
-            date: spec.date.replace("RELEASE", `RELEASE // CH_${randomMinutes}m_AGO`)
-          };
-        });
-
-        const dynamicEntries = prioritySpec ? [prioritySpec, ...dynamicOthers] : allSpecs;
-        setEntries(dynamicEntries);
-        setSelectedEntryId(targetPriorityId);
+        vector = session.vector || "fullstack";
       } catch (e) {
         console.error("Failed to parse tcg_session_manifest:", e);
         setIsAuthenticated(false);
-        setEntries(allSpecs);
-        setSelectedEntryId("");
       }
     } else {
-      // If no session exists, render as is without custom sorting, prevent auto-selection, disable sidebar click
       setIsAuthenticated(false);
-      setEntries(allSpecs);
-      setSelectedEntryId("");
     }
+
+    // Default expanded categories mapping to parsed vetted vector manifest session storage
+    const affinityCategoryMap: Record<string, string> = {
+      fullstack: "CORE",
+      ai: "LOCAL_INFERENCE",
+      devops: "NETWORKING",
+      frontend: "WEB_EDGE"
+    };
+    const defaultCategory = affinityCategoryMap[vector] || "CORE";
+    setExpandedCategories({
+      [defaultCategory]: true
+    });
+
+    const fetchLookbook = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("lookbook_specs")
+          .select("*")
+          .order("id", { ascending: true });
+
+        if (error) {
+          console.error("Database lookbook specs query error, using base entries fallback:", error);
+          setEntries(baseEntries);
+          const targetId = vector === "fullstack" ? "042" : vector === "ai" ? "068" : vector === "devops" ? "115" : "042";
+          setSelectedEntryId(targetId);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const mapped: RegistryEntry[] = data.map((row) => {
+            let desc = "";
+            let tData = { headers: [], rows: [] };
+            try {
+              const meta = typeof row.metadata_json === "string" 
+                ? JSON.parse(row.metadata_json) 
+                : row.metadata_json;
+              desc = meta?.description || "";
+              tData = meta?.tableData || { headers: [], rows: [] };
+            } catch (e) {
+              console.error("Failed to parse metadata JSON:", e);
+            }
+
+            return {
+              id: String(row.id),
+              ref: row.entry_ref || `[ENTRY_REF: #${row.id}]`,
+              title: row.title || "",
+              category: row.category || "",
+              date: new Date(row.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short"
+              }) + " // RELEASE",
+              description: desc,
+              tableData: tData,
+              codePayload: row.payload_matrix || ""
+            };
+          });
+
+          // Set entry selection to first node or affinity match
+          const affinitySpec = data.find(spec => spec.vector_affinity === vector);
+          if (affinitySpec) {
+            setSelectedEntryId(String(affinitySpec.id));
+          } else if (mapped[0]) {
+            setSelectedEntryId(mapped[0].id);
+          }
+          setEntries(mapped);
+        } else {
+          setEntries(baseEntries);
+          const targetId = vector === "fullstack" ? "042" : vector === "ai" ? "068" : vector === "devops" ? "115" : "042";
+          setSelectedEntryId(targetId);
+        }
+      } catch (e) {
+        console.error("Database initialization failed, using static specs:", e);
+        setEntries(baseEntries);
+        const targetId = vector === "fullstack" ? "042" : vector === "ai" ? "068" : vector === "devops" ? "115" : "042";
+        setSelectedEntryId(targetId);
+      }
+    };
+
+    fetchLookbook();
   }, []);
 
   const activeEntry = entries.find((e) => e.id === selectedEntryId) || entries[0] || baseEntries[0];
@@ -240,43 +288,105 @@ PersistentKeepalive = 25`
               // HISTORICAL_PROTOCOL_RELEASES
             </h3>
           </div>
+
+          {/* Interactive Category Taxonomy Filters */}
+          <div className="flex flex-wrap gap-1.5 pb-2 border-b border-white/5">
+            <button
+              onClick={() => setSelectedCategoryFilter("ALL")}
+              className={`px-2.5 py-1 font-mono text-[9.5px] border transition-all uppercase rounded ${
+                selectedCategoryFilter === "ALL"
+                  ? "bg-[#c084fc]/15 border-[#c084fc]/30 text-[#c084fc]"
+                  : "bg-transparent border-white/5 text-neutral-500 hover:text-neutral-300 hover:border-white/10"
+              }`}
+            >
+              [ALL]
+            </button>
+            {(["CORE", "LOCAL_INFERENCE", "NETWORKING", "WEB_EDGE"] as const).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategoryFilter(cat)}
+                className={`px-2.5 py-1 font-mono text-[9.5px] border transition-all uppercase rounded ${
+                  selectedCategoryFilter === cat
+                    ? "bg-[#c084fc]/15 border-[#c084fc]/30 text-[#c084fc]"
+                    : "bg-transparent border-white/5 text-neutral-500 hover:text-neutral-300 hover:border-white/10"
+                }`}
+              >
+                [{cat.replace("_", " ")}]
+              </button>
+            ))}
+          </div>
           
-          <div className="flex flex-col gap-3 font-mono text-[12px] pr-2">
-            {entries.map((entry) => {
-              const isSelected = entry.id === selectedEntryId;
-              return (
-                <div
-                  key={entry.id}
-                  onClick={() => {
-                    if (isAuthenticated) {
-                      setSelectedEntryId(entry.id);
-                    }
-                  }}
-                  className={`w-full text-left border rounded-lg p-5 transition-all duration-200 ${
-                    !isAuthenticated
-                      ? "bg-[#0b0714]/10 border-white/5 opacity-40 cursor-not-allowed select-none"
-                      : isSelected
-                      ? "bg-[#1c122e]/40 border-[#c084fc]/50 shadow-[0_0_15px_rgba(192,132,252,0.05)] cursor-pointer"
-                      : "bg-[#0b0714]/30 border-white/5 hover:border-white/20 hover:bg-[#0b0714]/50 cursor-pointer"
-                  }`}
-                >
-                  <span className={`text-[10px] block mb-1 font-bold ${
-                    !isAuthenticated ? "text-neutral-600" : isSelected ? "text-[#c084fc]" : "text-[#4b5563]"
-                  }`}>
-                    {entry.ref}
-                  </span>
-                  <h4 className={`font-bold font-sans uppercase tracking-tight text-[14px] leading-tight ${
-                    !isAuthenticated ? "text-neutral-500" : "text-white"
-                  }`}>
-                    {entry.title}
-                  </h4>
-                  <div className="flex justify-between items-center mt-3 text-[9px] text-neutral-600 uppercase tracking-widest font-mono">
-                    <span>{entry.category}</span>
-                    <span>{entry.date}</span>
+          <div className="space-y-3 font-mono text-[12px] pr-2">
+            {(["CORE", "LOCAL_INFERENCE", "NETWORKING", "WEB_EDGE"] as const)
+              .filter((cat) => selectedCategoryFilter === "ALL" || selectedCategoryFilter === cat)
+              .map((cat) => {
+                const catEntries = entries.filter((e) => getHighLevelCategory(e.category) === cat);
+                const isExpanded = !!expandedCategories[cat];
+                
+                return (
+                  <div key={cat} className="border border-white/5 rounded-lg overflow-hidden bg-[#0b0714]/15">
+                    {/* Accordion Toggle Header */}
+                    <button
+                      onClick={() => setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                      className="w-full flex justify-between items-center px-4 py-2.5 bg-black/40 hover:bg-black/60 border-b border-white/5 transition-colors font-mono text-[10px] text-neutral-300 select-none cursor-pointer"
+                    >
+                      <span className="font-bold tracking-wider uppercase">
+                        {isExpanded ? "[-] " : "[+] "} {cat.replace("_", " ")}
+                      </span>
+                      <span className="text-[9px] text-[#c084fc] bg-[#c084fc]/10 px-1.5 py-0.5 rounded font-mono">
+                        {catEntries.length}
+                      </span>
+                    </button>
+
+                    {/* Accordion Panel Body */}
+                    {isExpanded && (
+                      <div className="p-2.5 space-y-2 bg-[#06030a]/40 max-h-[350px] overflow-y-auto">
+                        {catEntries.length === 0 ? (
+                          <div className="text-neutral-600 text-center py-4 uppercase text-[9px]">
+                            No specifications archived
+                          </div>
+                        ) : (
+                          catEntries.map((entry) => {
+                            const isSelected = entry.id === selectedEntryId;
+                            return (
+                              <div
+                                key={entry.id}
+                                onClick={() => {
+                                  if (isAuthenticated) {
+                                    setSelectedEntryId(entry.id);
+                                  }
+                                }}
+                                className={`w-full text-left border rounded p-3.5 transition-all duration-200 ${
+                                  !isAuthenticated
+                                    ? "bg-transparent border-white/5 opacity-40 cursor-not-allowed select-none"
+                                    : isSelected
+                                    ? "bg-[#1c122e]/40 border-[#c084fc]/50 shadow-[0_0_15px_rgba(192,132,252,0.05)] cursor-pointer animate-pulse"
+                                    : "bg-transparent border-white/5 hover:border-white/20 hover:bg-white/[0.02] cursor-pointer"
+                                }`}
+                              >
+                                <span className={`text-[9px] block mb-1 font-bold ${
+                                  !isAuthenticated ? "text-neutral-600" : isSelected ? "text-[#c084fc]" : "text-[#4b5563]"
+                                }`}>
+                                  {entry.ref}
+                                </span>
+                                <h4 className={`font-bold font-sans uppercase tracking-tight text-[12.5px] leading-tight ${
+                                  !isAuthenticated ? "text-neutral-500" : "text-white"
+                                }`}>
+                                  {entry.title}
+                                </h4>
+                                <div className="flex justify-between items-center mt-2.5 text-[8.5px] text-neutral-600 uppercase tracking-widest font-mono">
+                                  <span>{entry.category}</span>
+                                  <span>{entry.date}</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </section>
 
