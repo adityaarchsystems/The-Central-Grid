@@ -1,13 +1,12 @@
-# <img src="https://raw.githubusercontent.com/gayanvoice/github-profile-readme-capsules/master/assets/templates/purple.svg" width="100%" />
 
-# ⚡ THE CENTRAL GRID `//` CORE ARCHITECTURE NETWORK
-> **SYSTEM_SEGMENT:** `GLOBAL_CORE_PROD` ── `LOCAL_FIRST // AGENTIC_ORCHESTRATION`
-> **COMPLIANCE_STATUS:** `CALYX_MATTE_VOID_STANDARD`
+# ⚡ THE CENTRAL GRID // CORE ARCHITECTURE NETWORK
+`ENGINE_VERSION: 3.0.0-GLOBAL-PROD`  
+`RUNTIME_MODE: LOCAL_FIRST // AGENTIC_ORCHESTRATION`  
+`COMPLIANCE: CALYX_MATTE_VOID_STANDARD`  
 
 ---
 
-### 🌐 OVERVIEW
-The Central Grid is a globally distributed, **zero-trust infrastructure platform** engineered for decentralized technical collectives. Built explicitly to eliminate high-overhead cloud abstractions, consumer-grade marketing noise, and low-velocity developer environments, the platform serves as a high-performance workspace, lookbook catalog, and code-vetting ledger.
+The Central Grid is a globally distributed, zero-trust infrastructure platform engineered for decentralized technical collectives. Built explicitly to eliminate high-overhead cloud abstractions, consumer-grade marketing noise, and low-velocity developer environments, the platform serves as a high-performance workspace, lookbook catalog, and code-vetting ledger.
 
 The network functions globally while dynamically routing verified builders into localized, hyper-selective regional nodes.
 
@@ -17,21 +16,18 @@ The network functions globally while dynamically routing verified builders into 
 
 The workspace implements a strict Next.js App Router route-grouped structure to decouple public vetting protocols from private, resource-intensive compute dashboards.
 
-```
 📁 src/app/
- ├── 📁 (landing)/                 # 🟣 Public Entry Ingress Layer
+ ├── 📁 (landing)/                 # Public Entry Ingress Layer
  │    ├── 📄 layout.tsx            # Global masks, matrix-grid assets, and font mappings
  │    └── 📄 page.tsx              # Public Filter Floor (Tiers 1-3 Ingress + Tiers 4-6 Protocols)
- └── 📁 dashboard/                 # 🟢 Secure Private Computational Workspaces
+ └── 📁 dashboard/                 # Secure Private Computational Workspaces
       ├── 📄 layout.tsx            # Global command header nav & client active path tracer
-      ├── 📁 audit/                # 🟣 Intake Registry: Real-time log simulation streaming
+      ├── 📁 audit/                # Intake Registry: Real-time real-time log simulation streaming
       │    └── 📄 page.tsx         
-      ├── 📁 registry/             # 🔵 Build Registry: Git-backed Documentation-as-Code ecosystem
+      ├── 📁 registry/             # Build Registry: Git-backed Documentation-as-Code ecosystem
       │    └── 📄 page.tsx         
-      └── 📁 network/              # 🟢 Telemetry Hub: Localized GPU node matrix & gamified Query Sandbox
+      └── 📁 network/              # Telemetry Hub: Localized GPU node matrix & gamified Query Sandbox
            └── 📄 page.tsx         
-
-```
 
 ---
 
@@ -39,19 +35,18 @@ The workspace implements a strict Next.js App Router route-grouped structure to 
 
 All interface components strictly satisfy the Calyx Premium Layout System. Under-volt visual variables are prohibited. Theme settings are strictly restricted to the following hexadecimal array:
 
-| SYSTEM CONSTANT | HEX VALUE | STRUCTURAL ROLE | INTERFACE TARGET |
-| --- | --- | --- | --- |
-| `Canvas_Backdrop` | `bg-[#06030a]` | **Solid Midnight Matte** | Global Base Layer Floor |
-| `Surface_Containers` | `bg-[#0b0714]` | **Deep Slate Panels** | Component Bento Boxes / Cards |
-| `Console_Cavities` | `bg-[#110e1e]` | **Recessed Cavities** | Code Blocks / Input Frameworks |
-| `Layout_Line-Grid` | `border-[#120e1e]` | **Thin Architectural Borders** | Grid Coordinate Divider Paths |
-| `Accent_Pulse` | `text-[#c084fc]` | **Signature Amethyst** | Status Badges / Ingress Selection |
-| `Validation_Beacon` | `text-[#22c55e]` | **Terminal Emerald** | Active Telemetry / Verified Rows |
+Tokens:
+  Canvas_Backdrop:     "#06030a"  # Solid Midnight Matte
+  Surface_Containers:  "#0b0714"  # Deep Slate Panels
+  Console_Cavities:    "#110e1e"  # Recessed Background Layers
+  Layout_Line-Grid:    "#120e1e"  # Thin Architectural Borders
+  Accent_Pulse:        "#c084fc"  # Signature Amethyst Spec
+  Validation_Beacon:   "#22c55e"  # Terminal Emerald Light
 
 ### Typographic Matrix
 
-* `INTERFACE_LABELS` ── Display text strings are uppercase-cased tracking arrays rendering via **Geist Display**.
-* `TELEMETRY_LOGS` ── Live logs, hash signatures, table arrays, and terminal logs are bound strictly to **JetBrains Mono** with explicit system fallbacks to prevent runtime hydration layout shifts.
+* **Interface Controls:** Display text strings are uppercase-cased tracking arrays rendering via `Geist Display`.
+* **Telemetry Logs:** Live logs, hash signatures, table arrays, and terminal logs are bound strictly to `JetBrains Mono` with explicit system fallbacks to prevent runtime hydration layout shifts.
 
 ---
 
@@ -61,15 +56,15 @@ All interface components strictly satisfy the Calyx Premium Layout System. Under
 
 The public floor acts as a rigorous qualitative gate. It replaces typical landing pages with strict, read-only system filters:
 
-* `🟢 TIER_04 // VETTING_MATRIX` ── Employs two responsive inline cards tracking continuous GitHub commit velocity and file complexity rules. Motion is handled via static-locked boxes expanding accent rings and alpha layers (`hover:bg-purple-950/10 hover:border-[#c084fc]/40`) without triggering layout pixel shifts.
-* `🔵 TIER_05 // LOOKBOOK_INDEX` ── A clean horizontal layout grid indexing upcoming lookbook files using tight tracking specifications.
-* `🟣 TIER_06 // EXCEPTIONS_LEDGER` ── A 2-column error troubleshooting log detailing geographical outposts and raw screening thresholds with absolute finality.
+* **Tier 4 (Vetting Matrix):** Employs two responsive inline cards tracking continuous GitHub commit velocity and file complexity rules. Motion is handled via static-locked boxes expanding accent rings and alpha layers (`hover:bg-purple-950/10 hover:border-[#c084fc]/40`) without triggering layout pixel shifts.
+* **Tier 5 (Lookbook Index):** A clean horizontal layout grid indexing upcoming lookbook files using tight tracking specifications.
+* **Tier 6 (Exceptions Ledger):** A 2-column error troubleshooting log detailing geographical outposts and raw screening thresholds with absolute finality.
 
 ### 2. Private Node Telemetry Space (`/dashboard/*`)
 
-* `🟣 DYNAMIC_PATH_TRACKING` ── The navigation layout (`layout.tsx`) hooks client-side path tracking functions to illuminate the selector of your active room using signature amethyst variables while keeping background routes a low-contrast neutral grey.
-* `🟢 DECOUPLED_SCROLL_TERMINAL` ── Streams real-time logging lines. Automated scroll-into-view triggers are decoupled and restricted strictly behind parent focus states (`onMouseEnter`) to preserve manual user scrolling behavior up-page.
-* `🔵 DOCS_AS_CODE_PANEL` ── An asymmetric 12-column layout mapping a left 4-column master index array alongside an 8-column canvas code presentation engine. Selecting a telemetry entry dynamically fetches its technical frontmatter, specification metrics, and local MLX execution strings without layout jitter.
+* **Dynamic Active Path Tracking:** The navigation layout (`layout.tsx`) hooks client-side path tracking functions to illuminate the selector of your active room using signature amethyst variables while keeping background routes a low-contrast neutral grey.
+* **The Decoupled Scroll Log Terminal (`/dashboard/audit`):** Streams real-time logging lines. Automated scroll-into-view triggers are decoupled and restricted strictly behind parent focus states (`onMouseEnter`) to preserve manual user scrolling behavior up-page.
+* **The Documentation-as-Code Panel (`/dashboard/registry`):** An asymmetric 12-column layout mapping a left 4-column master index array alongside an 8-column canvas code presentation engine. Selecting a telemetry entry dynamically fetches its technical frontmatter, specification metrics, and local MLX execution strings without layout jitter.
 
 ---
 
@@ -89,20 +84,11 @@ $$\text{Telemetry Score} = w_1 \cdot \text{Commit Density} + w_2 \cdot \text{Com
 
 Before dispatching patches or files to remote upstream main branches, developers must execute this local validation array:
 
-### 🧹 1. Clear Outdated Layout and Asset Caching Instances
-
-```
+# 1. Clear outdated layout and asset caching instances
 Remove-Item -Path ".next" -Force -Recurse -ErrorAction SilentlyContinue
 
-```
-
-### 🛰️ 2. Fire the Production Compilation Compiler Pass
-
-```
+# 2. Fire the production compilation compiler pass
 npm run build
 
-```
+Production pipelines must compile with **zero compilation warnings, zero TypeScript interface errors, and zero component overflow leak vectors**.
 
-> ⚠️ **COMPILATION BOUNDS:** Production pipelines must compile with **zero compilation warnings, zero TypeScript interface errors, and zero component overflow leak vectors**. All path route configurations must be statically validated to protect platform rendering boundaries.
-
-```
