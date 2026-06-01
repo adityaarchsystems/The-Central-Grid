@@ -60,24 +60,16 @@ export default function OnboardingSpecsPage() {
                 [ CRITERIA_02 // SECURE_MESH_CHANNELS ]
               </span>
               <p className="text-neutral-400 font-sans font-light text-[13.5px] leading-relaxed">
-                bridge directly with our closed corridor developer hubs on Telegram and Discord to coordinate weekend offline setups and collaborative deployments.
+                Bridge directly with our closed corridor developer hub on Telegram to coordinate live hardware configurations and collaborative deployments.
               </p>
             </div>
             
-            <div className="space-y-2.5 pt-4">
-              <a 
-                href="https://discord.gg/placeholder" 
-                target="_blank" 
-                rel="noreferrer"
-                className="w-full py-2.5 bg-[#1c122e]/60 border border-[#c084fc]/25 hover:border-[#c084fc]/50 text-white font-mono text-[11px] tracking-wider rounded-md uppercase text-center block transition-all hover:bg-[#1c122e]"
-              >
-                JOIN SECURE DISCORD UPLINK →
-              </a>
+            <div className="pt-4">
               <a 
                 href="https://t.me/placeholder" 
                 target="_blank" 
                 rel="noreferrer"
-                className="w-full py-2.5 bg-[#0b0714]/60 border border-white/5 hover:border-white/20 text-neutral-300 font-mono text-[11px] tracking-wider rounded-md uppercase text-center block transition-all"
+                className="w-full py-2.5 bg-[#1c122e]/60 border border-[#c084fc]/25 hover:border-[#c084fc]/50 text-white font-mono text-[11px] tracking-wider rounded-md uppercase text-center block transition-all hover:bg-[#1c122e]"
               >
                 TELEGRAM CORRIDOR TRANSIT →
               </a>
@@ -120,7 +112,7 @@ export default function OnboardingSpecsPage() {
             href="/dashboard/audit"
             className="w-full max-w-md py-4 bg-white text-black font-sans font-bold text-[13px] uppercase tracking-[0.15em] rounded-lg transition-all duration-300 hover:bg-neutral-200 active:scale-[0.99] text-center shadow-2xl hover:shadow-[#c084fc]/5"
           >
-            ENTER COMMAND WORKSPACE //
+            ENTER COMMAND WORKSPACE
           </Link>
           <span className="font-mono text-[9px] text-neutral-600 uppercase tracking-widest pointer-events-none select-none">
             induction cleared. secure gateway authorization credentials active.

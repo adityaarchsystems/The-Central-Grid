@@ -54,7 +54,7 @@ export default function OnboardingWelcomePage() {
             href="/onboarding/specs"
             className="inline-block w-full max-w-sm py-4 bg-white text-black font-sans font-bold text-[13px] uppercase tracking-[0.15em] rounded-lg transition-all duration-300 hover:bg-neutral-200 active:scale-[0.99] shadow-2xl hover:shadow-[#c084fc]/5"
           >
-            PROCEED TO SYSTEM BREAKDOWN //
+            PROCEED TO SYSTEM BREAKDOWN
           </Link>
         </div>
       </div>
