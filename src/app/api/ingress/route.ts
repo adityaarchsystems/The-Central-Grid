@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabase } from "../../../lib/supabase";
 
 interface IngressManifestPayload {
   engineeringVector: "fullstack" | "frontend" | "ai" | "devops";
@@ -61,10 +62,30 @@ export async function POST(request: Request) {
           { status: 422 }
         );
       }
+      const ingressToken = `IG-RL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      // Supabase Ledger Appends: Insert verified builder credentials (fallback)
+      try {
+        await supabase
+          .from("verified_builders")
+          .insert([
+            {
+              engineering_vector: engineeringVector,
+              github_url: githubUrl,
+              email_endpoint: emailEndpoint,
+              complexity_score: fallbackScore,
+              ingress_token: ingressToken,
+              created_at: new Date().toISOString(),
+            }
+          ]);
+      } catch (supabaseError) {
+        console.warn("Supabase ledger fallback append exception:", supabaseError);
+      }
+
       return NextResponse.json({
         success: true,
         complexityScore: fallbackScore,
-        ingressToken: `IG-RL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        ingressToken,
         simulated: true,
       });
     } else if (githubRes.status === 404) {
@@ -132,11 +153,34 @@ export async function POST(request: Request) {
       console.warn("Outbound community gateway handshake failed:", webhookError);
     }
 
+    const ingressToken = `IG-CORE-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // Supabase Ledger Appends: Insert verified builder credentials
+    try {
+      const { error: dbError } = await supabase
+        .from("verified_builders")
+        .insert([
+          {
+            engineering_vector: engineeringVector,
+            github_url: githubUrl,
+            email_endpoint: emailEndpoint,
+            complexity_score: complexityScore,
+            ingress_token: ingressToken,
+            created_at: new Date().toISOString(),
+          }
+        ]);
+      if (dbError) {
+        console.error("Supabase verified_builders insert error:", dbError);
+      }
+    } catch (supabaseError) {
+      console.warn("Supabase ledger append execution exception:", supabaseError);
+    }
+
     // Successful zero-trust telemetry compilation clearance
     return NextResponse.json({
       success: true,
       complexityScore,
-      ingressToken: `IG-CORE-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      ingressToken,
     });
   } catch (err) {
     return NextResponse.json(

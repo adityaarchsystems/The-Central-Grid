@@ -127,7 +127,7 @@ export default function CentralGridLandingFloor() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        router.push("/dashboard/audit");
+        router.push("/onboarding/welcome");
       } else {
         setErrors({
           github: data.error || "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS",
@@ -185,7 +185,7 @@ export default function CentralGridLandingFloor() {
           <span className="text-[#c084fc] font-bold animate-pulse text-xs">●</span> THE CENTRAL GRID
         </div>
         <div className="hidden md:flex gap-6 uppercase font-mono text-[#4b5563]">
-          <span>[ REGION: CG_CENTRAL_CORRIDOR ]</span>
+          <span className="font-mono text-[10px] text-[#4b5563] tracking-widest uppercase">[ SYSTEM_CORE: GLOBAL_NODE_UPLINK ]</span>
         </div>
       </nav>
 
