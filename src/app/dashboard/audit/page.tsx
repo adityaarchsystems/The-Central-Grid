@@ -5,9 +5,9 @@ import React, { useState, useEffect, useRef } from "react";
 interface AuditEntry {
   ingressId: string;
   targetVector: string;
-  githubFootprintStatus: "VERIFIED" | "PENDING" | "COMPILING" | "FLAGGED";
+  githubFootprintStatus: "VERIFIED" | "PENDING" | "COMPILING" | "FLAGGED" | "INACTIVE";
   commitFrequency: string;
-  auditStatus: "CLEAR" | "WAITING" | "ERROR";
+  auditStatus: "CLEAR" | "WAITING" | "ERROR" | "INACTIVE";
 }
 
 export default function CapabilityAuditPage() {
@@ -39,38 +39,10 @@ export default function CapabilityAuditPage() {
   useEffect(() => {
     setIsMounted(true);
 
-    // Pull saved system profile context tokens
-    let session = {
-      username: "guest_builder",
-      email: "guest@centralgrid.com",
-      vector: "fullstack"
-    };
-
     const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
-    if (stored) {
-      try {
-        session = JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to parse tcg_session_manifest:", e);
-      }
-    }
-
-    const vectorLabelMap: Record<string, string> = {
-      fullstack: "Full Stack Optimization",
-      frontend: "UI/UX Systems & Frontend",
-      ai: "AI Core & Local Inference",
-      devops: "DevOps & Edge Architecture"
-    };
-    
-    const userVectorLabel = vectorLabelMap[session.vector] || "Full Stack Optimization";
-
-    const userRow: AuditEntry = {
-      ingressId: `ING_${session.username.toUpperCase()}`,
-      targetVector: userVectorLabel,
-      githubFootprintStatus: "VERIFIED",
-      commitFrequency: "LIVE_TIMELINE_ACTIVE",
-      auditStatus: "CLEAR"
-    };
+    let userRow: AuditEntry;
+    let streamLogs: string[];
+    let streamItems: string[];
 
     const possibleUsernames = [
       "STACK_ARCHITECT", "DEV_CORE_ALPHA", "INF_NODE_X", "EDGE_ROUTING_PEER", 
@@ -84,6 +56,83 @@ export default function CapabilityAuditPage() {
       "DevOps & Edge Architecture",
       "Full Stack Optimization"
     ];
+
+    if (stored) {
+      let session = {
+        username: "guest_builder",
+        email: "guest@centralgrid.com",
+        vector: "fullstack"
+      };
+      try {
+        session = JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse tcg_session_manifest:", e);
+      }
+
+      const vectorLabelMap: Record<string, string> = {
+        fullstack: "Full Stack Optimization",
+        frontend: "UI/UX Systems & Frontend",
+        ai: "AI Core & Local Inference",
+        devops: "DevOps & Edge Architecture"
+      };
+      
+      const userVectorLabel = vectorLabelMap[session.vector] || "Full Stack Optimization";
+
+      userRow = {
+        ingressId: `ING_${session.username.toUpperCase()}`,
+        targetVector: userVectorLabel,
+        githubFootprintStatus: "VERIFIED",
+        commitFrequency: "LIVE_TIMELINE_ACTIVE",
+        auditStatus: "CLEAR"
+      };
+
+      streamLogs = [
+        `[AUDIT]: Starting capability verification loop for ${session.username}...`,
+        `[AUDIT]: Accessing local network corridor gateways...`,
+        `[AUDIT]: Initializing git-footprint telemetry pipeline for ${session.email}...`,
+        `[AUDIT]: Connecting to regional API endpoints... SECURE`,
+        `[AUDIT]: Parsing structural repo patterns for ${session.vector.toUpperCase()}... CLEAR`,
+      ];
+
+      streamItems = [
+        `[AUDIT]: User session detected for ${session.email.toUpperCase()}...`,
+        `[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE`,
+        `[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE`,
+        `[AUDIT]: Evaluating Ingress ID ING_${session.username.toUpperCase()} github footprint...`,
+        `[AUDIT]: Computing delta commit patterns... STABLE`,
+        `[AUDIT]: Parsing structural repo patterns... CLEAR`,
+        `[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms`,
+        `[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES`,
+        `[AUDIT]: Handshake status for ING_${session.username.toUpperCase()}... APPROVED`,
+        `[AUDIT]: Waiting for next telemetry ingress sequence...`,
+      ];
+    } else {
+      userRow = {
+        ingressId: "ING_GUEST_NODE",
+        targetVector: "UNASSIGNED // DEPLOYMENT_PENDING",
+        githubFootprintStatus: "INACTIVE",
+        commitFrequency: "INACTIVE_PORT_UPLINK",
+        auditStatus: "INACTIVE"
+      };
+
+      streamLogs = [
+        `[SYSTEM_INTEGRITY]: Awaiting secure socket handshake...`,
+        `[SYSTEM_INTEGRITY]: Listening on loopback interface 127.0.0.1...`,
+        `[SYSTEM_INTEGRITY]: Telemetry manifest ingestion state: UNASSIGNED`,
+        `[SYSTEM_INTEGRITY]: Secure compilation pipeline idle...`,
+        `[SYSTEM_INTEGRITY]: Awaiting onboarding intake manifest authentication...`,
+      ];
+
+      streamItems = [
+        `[SYSTEM_INTEGRITY]: Port listener initialized on port 80...`,
+        `[SYSTEM_INTEGRITY]: Scanning for transit payload packets... IDLE`,
+        `[SYSTEM_INTEGRITY]: No active session manifest signature detected...`,
+        `[SYSTEM_INTEGRITY]: Sandbox compilation buffer is blank...`,
+        `[SYSTEM_INTEGRITY]: Loopback interface ping to gateway Raipur-Hub-01... 0.4ms`,
+        `[SYSTEM_INTEGRITY]: Network socket authentication pending...`,
+        `[SYSTEM_INTEGRITY]: Waiting for next telemetry ingress sequence...`,
+      ];
+    }
 
     const procedurals = possibleUsernames.map((uname, index) => {
       const targetVector = vectors[index % vectors.length];
@@ -107,29 +156,7 @@ export default function CapabilityAuditPage() {
       ...shuffled
     ];
     setEntries(initialEntries);
-
-    const streamLogs = [
-      `[AUDIT]: Starting capability verification loop for ${session.username}...`,
-      `[AUDIT]: Accessing local network corridor gateways...`,
-      `[AUDIT]: Initializing git-footprint telemetry pipeline for ${session.email}...`,
-      `[AUDIT]: Connecting to regional API endpoints... SECURE`,
-      `[AUDIT]: Parsing structural repo patterns for ${session.vector.toUpperCase()}... CLEAR`,
-    ];
     setTerminalLogs(streamLogs);
-
-    // Stream additions
-    const streamItems = [
-      `[AUDIT]: User session detected for ${session.email.toUpperCase()}...`,
-      `[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE`,
-      `[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE`,
-      `[AUDIT]: Evaluating Ingress ID ING_${session.username.toUpperCase()} github footprint...`,
-      `[AUDIT]: Computing delta commit patterns... STABLE`,
-      `[AUDIT]: Parsing structural repo patterns... CLEAR`,
-      `[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms`,
-      `[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES`,
-      `[AUDIT]: Handshake status for ING_${session.username.toUpperCase()}... APPROVED`,
-      `[AUDIT]: Waiting for next telemetry ingress sequence...`,
-    ];
 
     let count = 0;
     const interval = setInterval(() => {
@@ -210,47 +237,66 @@ export default function CapabilityAuditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-neutral-400">
-              {entries.map((entry, index) => (
-                <tr key={index} className="hover:bg-white/[0.02] transition-colors duration-150">
-                  <td className="py-4 px-6 text-left text-white font-medium">{entry.ingressId}</td>
-                  <td className="py-4 px-6 text-left">{entry.targetVector}</td>
-                  <td className="py-4 px-6 text-left">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-mono ${
-                      entry.githubFootprintStatus === "VERIFIED" 
-                        ? "bg-emerald-950/20 border border-emerald-500/20 text-[#22c55e]" 
-                        : entry.githubFootprintStatus === "COMPILING"
-                        ? "bg-purple-950/20 border border-purple-500/20 text-[#c084fc] animate-pulse"
-                        : entry.githubFootprintStatus === "FLAGGED"
-                        ? "bg-red-950/20 border border-red-500/20 text-red-400"
-                        : "bg-neutral-900 border border-neutral-700 text-neutral-400"
-                    }`}>
-                      <span className={`w-1 h-1 rounded-full ${
-                        entry.githubFootprintStatus === "VERIFIED" ? "bg-[#22c55e]" : entry.githubFootprintStatus === "FLAGGED" ? "bg-red-400" : "bg-[#c084fc] animate-pulse"
-                      }`} />
-                      {entry.githubFootprintStatus}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-left text-[11px] text-neutral-500">{entry.commitFrequency}</td>
-                  <td className="py-4 px-6 text-right">
-                    {entry.auditStatus === "CLEAR" ? (
-                      <span className="text-[#22c55e] font-bold inline-flex items-center gap-1.5 justify-end">
-                        <span>CLEAR</span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-                        <span className="text-[10px] tracking-widest text-[#22c55e] opacity-80 animate-pulse font-mono">[ OK // SECURE ]</span>
+              {entries.map((entry, index) => {
+                const isGuestNode = entry.ingressId === "ING_GUEST_NODE";
+                return (
+                  <tr key={index} className="hover:bg-white/[0.02] transition-colors duration-150">
+                    <td className={`py-4 px-6 text-left font-medium ${isGuestNode ? "text-neutral-500/80" : "text-white"}`}>
+                      {entry.ingressId}
+                    </td>
+                    <td className={`py-4 px-6 text-left ${isGuestNode ? "text-neutral-500/80" : "text-neutral-400"}`}>
+                      {entry.targetVector}
+                    </td>
+                    <td className="py-4 px-6 text-left">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-mono ${
+                        entry.githubFootprintStatus === "VERIFIED" 
+                          ? "bg-emerald-950/20 border border-emerald-500/20 text-[#22c55e]" 
+                          : entry.githubFootprintStatus === "COMPILING"
+                          ? "bg-purple-950/20 border border-purple-500/20 text-[#c084fc] animate-pulse"
+                          : entry.githubFootprintStatus === "FLAGGED"
+                          ? "bg-red-950/20 border border-red-500/20 text-red-400"
+                          : entry.githubFootprintStatus === "INACTIVE"
+                          ? "bg-neutral-950/40 border border-white/5 text-neutral-500"
+                          : "bg-neutral-900 border border-neutral-700 text-neutral-400"
+                      }`}>
+                        <span className={`w-1 h-1 rounded-full ${
+                          entry.githubFootprintStatus === "VERIFIED" 
+                            ? "bg-[#22c55e]" 
+                            : entry.githubFootprintStatus === "FLAGGED" 
+                            ? "bg-red-400" 
+                            : entry.githubFootprintStatus === "INACTIVE"
+                            ? "bg-neutral-600"
+                            : "bg-[#c084fc] animate-pulse"
+                        }`} />
+                        {entry.githubFootprintStatus}
                       </span>
-                    ) : entry.auditStatus === "WAITING" ? (
-                      <span className="text-[#c084fc] font-bold inline-flex items-center justify-end">
-                        <span>WAITING</span>
-                        <span className="inline-block min-w-[12px] text-left ml-0.5">{dots}</span>
-                      </span>
-                    ) : (
-                      <span className="text-red-400 font-bold">
-                        {entry.auditStatus}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-4 px-6 text-left text-[11px] text-neutral-500">{entry.commitFrequency}</td>
+                    <td className="py-4 px-6 text-right">
+                      {entry.auditStatus === "CLEAR" ? (
+                        <span className="text-[#22c55e] font-bold inline-flex items-center gap-1.5 justify-end">
+                          <span>CLEAR</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
+                          <span className="text-[10px] tracking-widest text-[#22c55e] opacity-80 animate-pulse font-mono">[ OK // SECURE ]</span>
+                        </span>
+                      ) : entry.auditStatus === "WAITING" ? (
+                        <span className="text-[#c084fc] font-bold inline-flex items-center justify-end">
+                          <span>WAITING</span>
+                          <span className="inline-block min-w-[12px] text-left ml-0.5">{dots}</span>
+                        </span>
+                      ) : entry.auditStatus === "INACTIVE" ? (
+                        <span className="text-neutral-500 font-bold uppercase tracking-wider">
+                          INACTIVE
+                        </span>
+                      ) : (
+                        <span className="text-red-400 font-bold">
+                          {entry.auditStatus}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

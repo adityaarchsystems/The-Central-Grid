@@ -122,9 +122,12 @@ export default function ComputeNetworkPage() {
 
     const initialNodes: ComputeNode[] = [
       { identifier: "MASTER_NODE_ALPHA", hardware: "RTX 5060 Ti 16GB", engine: "f5-tts_flow_match // VBR", baseSpeed: 4.0, speedUnit: "x ACCEL", rank: "INFRA_CORE" },
-      ...uniqueBackgroundNodes,
-      userNode
+      ...uniqueBackgroundNodes
     ];
+
+    if (stored) {
+      initialNodes.push(userNode);
+    }
 
     setNodes(initialNodes);
 

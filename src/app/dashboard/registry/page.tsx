@@ -19,6 +19,7 @@ interface RegistryEntry {
 export default function CoreBuildRegistryPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState("042");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [entries, setEntries] = useState<RegistryEntry[]>([]);
 
@@ -172,6 +173,7 @@ PersistentKeepalive = 25`
     if (stored) {
       try {
         const session = JSON.parse(stored);
+        setIsAuthenticated(true);
         const vectorPriorityMap: Record<string, string> = {
           fullstack: "999",
           ai: "091",
@@ -200,13 +202,15 @@ PersistentKeepalive = 25`
         setSelectedEntryId(targetPriorityId);
       } catch (e) {
         console.error("Failed to parse tcg_session_manifest:", e);
+        setIsAuthenticated(false);
         setEntries(allSpecs);
-        setSelectedEntryId("042");
+        setSelectedEntryId("");
       }
     } else {
-      // If no session exists, render as is without custom sorting, default select F5-TTS
+      // If no session exists, render as is without custom sorting, prevent auto-selection, disable sidebar click
+      setIsAuthenticated(false);
       setEntries(allSpecs);
-      setSelectedEntryId("042");
+      setSelectedEntryId("");
     }
   }, []);
 
@@ -243,22 +247,30 @@ PersistentKeepalive = 25`
               return (
                 <div
                   key={entry.id}
-                  onClick={() => setSelectedEntryId(entry.id)}
-                  className={`w-full text-left border rounded-lg p-5 cursor-pointer transition-all duration-200 ${
-                    isSelected
-                      ? "bg-[#1c122e]/40 border-[#c084fc]/50 shadow-[0_0_15px_rgba(192,132,252,0.05)]"
-                      : "bg-[#0b0714]/30 border-white/5 hover:border-white/20 hover:bg-[#0b0714]/50"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      setSelectedEntryId(entry.id);
+                    }
+                  }}
+                  className={`w-full text-left border rounded-lg p-5 transition-all duration-200 ${
+                    !isAuthenticated
+                      ? "bg-[#0b0714]/10 border-white/5 opacity-40 cursor-not-allowed select-none"
+                      : isSelected
+                      ? "bg-[#1c122e]/40 border-[#c084fc]/50 shadow-[0_0_15px_rgba(192,132,252,0.05)] cursor-pointer"
+                      : "bg-[#0b0714]/30 border-white/5 hover:border-white/20 hover:bg-[#0b0714]/50 cursor-pointer"
                   }`}
                 >
                   <span className={`text-[10px] block mb-1 font-bold ${
-                    isSelected ? "text-[#c084fc]" : "text-[#4b5563]"
+                    !isAuthenticated ? "text-neutral-600" : isSelected ? "text-[#c084fc]" : "text-[#4b5563]"
                   }`}>
                     {entry.ref}
                   </span>
-                  <h4 className="text-white font-bold font-sans uppercase tracking-tight text-[14px] leading-tight">
+                  <h4 className={`font-bold font-sans uppercase tracking-tight text-[14px] leading-tight ${
+                    !isAuthenticated ? "text-neutral-500" : "text-white"
+                  }`}>
                     {entry.title}
                   </h4>
-                  <div className="flex justify-between items-center mt-3 text-[9px] text-neutral-500 uppercase tracking-widest font-mono">
+                  <div className="flex justify-between items-center mt-3 text-[9px] text-neutral-600 uppercase tracking-widest font-mono">
                     <span>{entry.category}</span>
                     <span>{entry.date}</span>
                   </div>
@@ -269,72 +281,86 @@ PersistentKeepalive = 25`
         </section>
 
         {/* RIGHT COLUMN: DOCUMENT CANVAS FRAME (8 COLUMNS) */}
-        <section className="lg:col-span-8 bg-[#0b0714]/20 border border-white/5 rounded-xl px-6 pb-6 md:px-8 md:pb-8 pt-0 flex flex-col justify-between space-y-6 select-text">
-          
-          <div className="space-y-4 mb-6 pb-4 border-b border-white/5 pt-8">
-            <div className="flex justify-between items-center border-b border-white/5 pb-3">
-              <span className="font-mono text-[10px] text-[#c084fc] uppercase tracking-widest">
-                // ACTIVE_SPECIFICATION_HANDSHAKE
-              </span>
-              <span className="font-mono text-[10px] text-neutral-500 uppercase">
-                {activeEntry.date}
-              </span>
-            </div>
-
-            <h2 className="text-[20px] md:text-[24px] font-bold text-white uppercase tracking-tight font-sans mt-2">
-              {activeEntry.title}
-            </h2>
-
-            <p className="text-[13.5px] leading-relaxed text-neutral-400 font-light font-sans">
-              {activeEntry.description}
+        {!isAuthenticated ? (
+          <section className="lg:col-span-8 bg-[#0b0714]/10 border border-dashed border-white/5 rounded-xl p-12 flex flex-col justify-center items-center text-center space-y-4 select-none opacity-40">
+            <svg className="w-12 h-12 text-neutral-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <h3 className="font-mono text-[13px] font-bold text-[#c084fc] uppercase tracking-widest animate-pulse">
+              AWAITING_INGRESS_MANIFEST // CORE BLUEPRINTS LOCKED
+            </h3>
+            <p className="text-[12px] text-neutral-500 font-sans max-w-sm leading-relaxed">
+              Vetting integrity constraints are unyielding. Complete your speculative profile at the main terminal gate to provision secure lookbook decryption keys.
             </p>
-          </div>
+          </section>
+        ) : (
+          <section className="lg:col-span-8 bg-[#0b0714]/20 border border-white/5 rounded-xl px-6 pb-6 md:px-8 md:pb-8 pt-0 flex flex-col justify-between space-y-6 select-text">
+            
+            <div className="space-y-4 mb-6 pb-4 border-b border-white/5 pt-8">
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <span className="font-mono text-[10px] text-[#c084fc] uppercase tracking-widest">
+                  // ACTIVE_SPECIFICATION_HANDSHAKE
+                </span>
+                <span className="font-mono text-[10px] text-neutral-500 uppercase">
+                  {activeEntry.date}
+                </span>
+              </div>
 
-          {/* Custom Markdown Table Frame */}
-          <div className="space-y-2">
-            <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block">
-              // TELEMETRY_CONSTRAINT_TABLE
-            </span>
-            <div className="border border-white/5 rounded overflow-x-auto">
-              <table className="w-full text-left font-mono text-[11px] border-collapse bg-black/40 text-neutral-300 min-w-[400px]">
-                <thead>
-                  <tr className="border-b border-white/5 text-neutral-500 bg-black/70">
-                    {activeEntry.tableData.headers.map((h, i) => (
-                      <th key={i} className="py-2.5 px-4 font-mono text-[10px] tracking-wider uppercase font-semibold">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 text-neutral-400">
-                  {activeEntry.tableData.rows.map((row, rIdx) => (
-                    <tr key={rIdx} className="hover:bg-white/[0.01] transition-colors">
-                      {row.map((cell, cIdx) => {
-                        let textClass = "";
-                        if (cIdx === 1) textClass = "text-[#c084fc] font-semibold";
-                        if (cIdx === 2 && (cell.includes("Stable") || cell.includes("Zero") || cell.includes("Optimized") || cell.includes("accel"))) {
-                          textClass = "text-[#22c55e]";
-                        }
-                        return (
-                          <td key={cIdx} className={`py-2 px-4 ${textClass}`}>{cell}</td>
-                        );
-                      })}
+              <h2 className="text-[20px] md:text-[24px] font-bold text-white uppercase tracking-tight font-sans mt-2">
+                {activeEntry.title}
+              </h2>
+
+              <p className="text-[13.5px] leading-relaxed text-neutral-400 font-light font-sans">
+                {activeEntry.description}
+              </p>
+            </div>
+
+            {/* Custom Markdown Table Frame */}
+            <div className="space-y-2">
+              <span className="font-mono text-[9px] text-neutral-500 uppercase tracking-widest block">
+                // TELEMETRY_CONSTRAINT_TABLE
+              </span>
+              <div className="border border-white/5 rounded overflow-x-auto">
+                <table className="w-full text-left font-mono text-[11px] border-collapse bg-black/40 text-neutral-300 min-w-[400px]">
+                  <thead>
+                    <tr className="border-b border-white/5 text-neutral-500 bg-black/70">
+                      {activeEntry.tableData.headers.map((h, i) => (
+                        <th key={i} className="py-2.5 px-4 font-mono text-[10px] tracking-wider uppercase font-semibold">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-neutral-400">
+                    {activeEntry.tableData.rows.map((row, rIdx) => (
+                      <tr key={rIdx} className="hover:bg-white/[0.01] transition-colors">
+                        {row.map((cell, cIdx) => {
+                          let textClass = "";
+                          if (cIdx === 1) textClass = "text-[#c084fc] font-semibold";
+                          if (cIdx === 2 && (cell.includes("Stable") || cell.includes("Zero") || cell.includes("Optimized") || cell.includes("accel"))) {
+                            textClass = "text-[#22c55e]";
+                          }
+                          return (
+                            <td key={cIdx} className={`py-2 px-4 ${textClass}`}>{cell}</td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
-          {/* Code block window highlighting local MLX execution lines */}
-          <div className="space-y-2 select-text">
-            <span className="font-mono text-[9px] text-[#c084fc] uppercase tracking-widest block">
-              // CODE_PAYLOAD_EXECUTION_MATRIX
-            </span>
-            <div className="bg-[#0a0613]/50 border border-[#120e1e] rounded-lg p-6 pb-8 font-mono text-[12px] text-neutral-400 overflow-x-auto whitespace-pre">
-              {activeEntry.codePayload}
+            {/* Code block window highlighting local MLX execution lines */}
+            <div className="space-y-2 select-text">
+              <span className="font-mono text-[9px] text-[#c084fc] uppercase tracking-widest block">
+                // CODE_PAYLOAD_EXECUTION_MATRIX
+              </span>
+              <div className="bg-[#0a0613]/50 border border-[#120e1e] rounded-lg p-6 pb-8 font-mono text-[12px] text-neutral-400 overflow-x-auto whitespace-pre">
+                {activeEntry.codePayload}
+              </div>
             </div>
-          </div>
 
-        </section>
+          </section>
+        )}
 
       </div>
     </div>
