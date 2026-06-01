@@ -147,22 +147,6 @@ PersistentKeepalive = 25`
   useEffect(() => {
     setIsMounted(true);
 
-    // Pull saved system profile context tokens
-    let session = {
-      username: "guest_builder",
-      email: "guest@centralgrid.com",
-      vector: "fullstack"
-    };
-
-    const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
-    if (stored) {
-      try {
-        session = JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to parse tcg_session_manifest:", e);
-      }
-    }
-
     const nextOptimizeSpec: RegistryEntry = {
       id: "999",
       ref: "[ENTRY_REF: #999] // NEXT-OPTIMIZE",
@@ -184,32 +168,46 @@ PersistentKeepalive = 25`
 
     const allSpecs = [nextOptimizeSpec, ...baseEntries];
 
-    const vectorPriorityMap: Record<string, string> = {
-      fullstack: "999",
-      ai: "091",
-      devops: "115",
-      frontend: "042"
-    };
+    const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        const vectorPriorityMap: Record<string, string> = {
+          fullstack: "999",
+          ai: "091",
+          devops: "115",
+          frontend: "042"
+        };
 
-    const targetPriorityId = vectorPriorityMap[session.vector] || "999";
-    const prioritySpec = allSpecs.find(spec => spec.id === targetPriorityId);
-    const otherSpecs = allSpecs.filter(spec => spec.id !== targetPriorityId);
+        const targetPriorityId = vectorPriorityMap[session.vector] || "999";
+        const prioritySpec = allSpecs.find(spec => spec.id === targetPriorityId);
+        const otherSpecs = allSpecs.filter(spec => spec.id !== targetPriorityId);
 
-    // Shuffle the background protocol release components dynamically
-    const shuffledOthers = [...otherSpecs].sort(() => 0.5 - Math.random());
-    
-    // Vary their metadata dates programmatically to prevent pre-baked look
-    const dynamicOthers = shuffledOthers.map((spec) => {
-      const randomMinutes = Math.floor(Math.random() * 55 + 5);
-      return {
-        ...spec,
-        date: spec.date.replace("RELEASE", `RELEASE // CH_${randomMinutes}m_AGO`)
-      };
-    });
+        // Shuffle the background protocol release components dynamically
+        const shuffledOthers = [...otherSpecs].sort(() => 0.5 - Math.random());
+        
+        // Vary their metadata dates programmatically to prevent pre-baked look
+        const dynamicOthers = shuffledOthers.map((spec) => {
+          const randomMinutes = Math.floor(Math.random() * 55 + 5);
+          return {
+            ...spec,
+            date: spec.date.replace("RELEASE", `RELEASE // CH_${randomMinutes}m_AGO`)
+          };
+        });
 
-    const dynamicEntries = prioritySpec ? [prioritySpec, ...dynamicOthers] : allSpecs;
-    setEntries(dynamicEntries);
-    setSelectedEntryId(targetPriorityId);
+        const dynamicEntries = prioritySpec ? [prioritySpec, ...dynamicOthers] : allSpecs;
+        setEntries(dynamicEntries);
+        setSelectedEntryId(targetPriorityId);
+      } catch (e) {
+        console.error("Failed to parse tcg_session_manifest:", e);
+        setEntries(allSpecs);
+        setSelectedEntryId("042");
+      }
+    } else {
+      // If no session exists, render as is without custom sorting, default select F5-TTS
+      setEntries(allSpecs);
+      setSelectedEntryId("042");
+    }
   }, []);
 
   const activeEntry = entries.find((e) => e.id === selectedEntryId) || entries[0] || baseEntries[0];

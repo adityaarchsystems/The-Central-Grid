@@ -15,6 +15,8 @@ export default function ComputeNetworkPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [systemTime, setSystemTime] = useState("");
   const [nodes, setNodes] = useState<ComputeNode[]>([]);
+  const [ollamaStatus, setOllamaStatus] = useState<"CONNECTING" | "CONNECTED" | "OFFLINE">("CONNECTING");
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
 
   // Client simulated latency / speed fluctuations
   useEffect(() => {
@@ -163,6 +165,65 @@ export default function ComputeNetworkPage() {
     };
   }, []);
 
+  // Ollama Live Local Ingress Handshake Loop
+  useEffect(() => {
+    if (!isMounted) return;
+
+    const checkOllama = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:11434/api/tags", {
+          signal: AbortSignal.timeout(2000)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const names = (data.models || []).map((m: any) => m.name);
+          setOllamaModels(names);
+          setOllamaStatus("CONNECTED");
+          return;
+        }
+      } catch {
+        try {
+          const res2 = await fetch("http://120.0.0.1:11434/api/tags", {
+            signal: AbortSignal.timeout(2000)
+          });
+          if (res2.ok) {
+            const data2 = await res2.json();
+            const names2 = (data2.models || []).map((m: any) => m.name);
+            setOllamaModels(names2);
+            setOllamaStatus("CONNECTED");
+            return;
+          }
+        } catch {
+          // both loops failed
+        }
+      }
+      setOllamaStatus("OFFLINE");
+    };
+
+    checkOllama();
+    const intervalId = setInterval(checkOllama, 10000);
+    return () => clearInterval(intervalId);
+  }, [isMounted]);
+
+  // Update compute node engines dynamically if Ollama is connected
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    setNodes((prevNodes) =>
+      prevNodes.map((node, i) => {
+        if (node.identifier === "MASTER_NODE_ALPHA") return node;
+
+        if (ollamaStatus === "CONNECTED" && ollamaModels.length > 0) {
+          const modelIndex = i % ollamaModels.length;
+          return {
+            ...node,
+            engine: `ollama: ${ollamaModels[modelIndex]} // local_handshake`
+          };
+        }
+        return node;
+      })
+    );
+  }, [ollamaStatus, ollamaModels]);
+
   if (!isMounted) return <div className="min-h-screen bg-[#06030a]" />;
 
   return (
@@ -188,6 +249,16 @@ export default function ComputeNetworkPage() {
         <h3 className="font-mono text-[12px] uppercase tracking-wider text-neutral-400 select-none">
           // COMPUTE_CLUSTER_HARDWARE_INDEX
         </h3>
+
+        {ollamaStatus === "OFFLINE" && (
+          <div className="border border-red-500/20 bg-red-950/5 rounded-lg p-5 font-mono text-[11px] text-red-400 select-text flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span>LOCAL_ENGINE_OFFLINE // CONNECT TO OLLAMA PORT 11434 TO POPULATE MODULE MATRIX</span>
+            </div>
+            <span className="text-neutral-600 uppercase tracking-widest text-[9px] font-mono">[ POLL_FAIL // PORT_11434 ]</span>
+          </div>
+        )}
         
         <div className="border border-white/5 rounded-lg bg-[#0b0714]/25 overflow-x-auto select-text">
           <table className="w-full text-left font-mono text-[12px] border-collapse min-w-[700px]">
