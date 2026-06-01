@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #06030a;
+  --color-surface-card: #0b0714;
+  --color-surface-inset: #110c1e;
+  --color-border-low: #120e1e;
+  --color-border-hover: #221936;
+  --color-accent-amethyst: #c084fc;
+  --color-terminal-emerald: #22c55e;
+  --color-text-primary: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-text-blueprint: #4b5563;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Custom Text Selection Mask */
+::selection {
+  background-color: rgba(192, 132, 252, 0.3);
+  color: #ffffff;
+}
+
+/* Global Reset overrides to maintain Calyx matte hardware void styling */
+body {
+  background-color: #06030a;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .grid-tracer-card {
+    position: relative;
+  }
+  .grid-tracer-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px; /* The explicit 1px tracer lane width */
+    background: linear-gradient(to bottom right, transparent 20%, rgba(192, 132, 252, 0.02), transparent 80%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    transition: background 0.4s ease;
+  }
+  .grid-tracer-card:hover::before {
+    background: linear-gradient(to bottom right, #c084fc 0%, rgba(192, 132, 252, 0.4) 30%, transparent 70%);
+  }
+}
