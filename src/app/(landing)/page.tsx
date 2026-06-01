@@ -14,14 +14,12 @@ export default function CentralGridLandingFloor() {
   const [email, setEmail] = useState("");
   const [vector, setVector] = useState("fullstack");
   const [github, setGithub] = useState("");
-  const [location, setLocation] = useState("bhilai");
   const [submitted, setSubmitted] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; github?: string }>({});
 
   // Custom Dropdown Open States
   const [vectorOpen, setVectorOpen] = useState(false);
-  const [locationOpen, setLocationOpen] = useState(false);
 
   // Magazine Form States
   const [magEmail, setMagEmail] = useState("");
@@ -42,14 +40,7 @@ export default function CentralGridLandingFloor() {
     { value: "devops", label: "DevOps & Edge Architecture" }
   ];
 
-  const locationOptions = [
-    { value: "bhilai", label: "Bhilai Sector Corridor" },
-    { value: "raipur", label: "Raipur Tech Cluster" },
-    { value: "durg", label: "Durg Junction District" }
-  ];
-
   const selectedVectorLabel = vectorOptions.find(v => v.value === vector)?.label || "";
-  const selectedLocationLabel = locationOptions.find(l => l.value === location)?.label || "";
 
   // Client Mount Handshake & Telemetry Simulation
   useEffect(() => {
@@ -77,11 +68,9 @@ export default function CentralGridLandingFloor() {
     };
   }, []);
 
-  // Close dropdowns on clicking away
   useEffect(() => {
     const handleClickAway = () => {
       setVectorOpen(false);
-      setLocationOpen(false);
     };
     window.addEventListener("click", handleClickAway);
     return () => window.removeEventListener("click", handleClickAway);
@@ -132,7 +121,6 @@ export default function CentralGridLandingFloor() {
           engineeringVector: vector,
           githubUrl: github,
           emailEndpoint: email,
-          baseLocation: location,
         }),
       });
 
@@ -167,13 +155,6 @@ export default function CentralGridLandingFloor() {
   const toggleVector = (e: React.MouseEvent) => {
     e.stopPropagation();
     setVectorOpen(!vectorOpen);
-    setLocationOpen(false);
-  };
-
-  const toggleLocation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setLocationOpen(!locationOpen);
-    setVectorOpen(false);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -344,34 +325,6 @@ export default function CentralGridLandingFloor() {
                     )}
                   </div>
 
-                  {/* Field 04: Custom React State-Driven Location Selector */}
-                  <div className="space-y-2">
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-[#4b5563]">CURRENT BASE LOCATION</label>
-                    <div className="relative">
-                      <div 
-                        onClick={toggleLocation} 
-                        className="w-full bg-[#110c1e] border border-white/5 rounded px-4 py-2.5 text-[13px] text-white font-mono uppercase cursor-pointer flex justify-between items-center transition-all duration-200 hover:border-[#c084fc]/30 select-none"
-                      >
-                        <span>{selectedLocationLabel}</span>
-                        <span className={`text-neutral-600 transition-transform duration-200 ${locationOpen ? "rotate-180 text-[#c084fc]" : ""}`}>▼</span>
-                      </div>
-                      
-                      {locationOpen && (
-                        <div className="absolute top-[110%] left-0 w-full bg-[#110c1e] border border-white/10 rounded shadow-xl z-50 font-mono text-[12px] overflow-hidden">
-                          {locationOptions.map(option => (
-                            <div 
-                              key={option.value}
-                              onClick={() => { setLocation(option.value); setLocationOpen(false); }}
-                              className={`px-4 py-2.5 text-neutral-300 hover:bg-[#221936] hover:text-white cursor-pointer uppercase transition-colors ${location === option.value ? "bg-[#c084fc]/5 text-[#c084fc] border-l-2 border-[#c084fc]" : "text-neutral-300"}`}
-                            >
-                              {option.label}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
                   {/* Action Button */}
                   <button 
                     id="submit-manifest-button"
@@ -482,7 +435,7 @@ export default function CentralGridLandingFloor() {
             <div className="space-y-3">
               <span className="font-mono text-[10px] text-[#c084fc] uppercase tracking-widest block block">// GUILD_PUBLICATION_SPEC</span>
               <h2 className="text-[28px] md:text-[34px] font-bold tracking-[-0.04em] text-white uppercase font-sans leading-tight">
-                THE CENTRAL GRID SPECIFICATION LOOKBOOK.
+                THE CENTRAL GRID OPEN INFRASTRUCTURE LEDGER.
               </h2>
             </div>
             
@@ -527,14 +480,10 @@ export default function CentralGridLandingFloor() {
                   <div className="space-y-1">
                     <span className="block text-[11px] font-bold text-white uppercase tracking-widest">ACCESS TOKEN GENERATED</span>
                     <a 
-                      href="#download" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert("Compiling lookup schema: Lookbook PDF Handshake initialized.");
-                      }}
+                      href="https://github.com/adityaarchsystems/The-Central-Grid/archive/refs/heads/main.zip" 
                       className="block text-[10px] text-[#c084fc] underline hover:text-white uppercase tracking-wider"
                     >
-                      DOWNLOAD_LOOKBOOK_ISSUE_01.PDF (14.2MB)
+                      DOWNLOAD_OPEN_INFRASTRUCTURE_LEDGER.ZIP
                     </a>
                   </div>
                 </div>

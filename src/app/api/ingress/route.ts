@@ -4,16 +4,15 @@ interface IngressManifestPayload {
   engineeringVector: "fullstack" | "frontend" | "ai" | "devops";
   githubUrl: string;
   emailEndpoint: string;
-  baseLocation: string;
 }
 
 export async function POST(request: Request) {
   try {
     const body: IngressManifestPayload = await request.json();
-    const { engineeringVector, githubUrl, emailEndpoint, baseLocation } = body;
+    const { engineeringVector, githubUrl, emailEndpoint } = body;
 
     // Validate payload fields
-    if (!engineeringVector || !githubUrl || !emailEndpoint || !baseLocation) {
+    if (!engineeringVector || !githubUrl || !emailEndpoint) {
       return NextResponse.json(
         { error: "[LINT_FAIL]: INCOMPLETE_MANIFEST_PARAMETERS" },
         { status: 400 }
@@ -113,6 +112,24 @@ export async function POST(request: Request) {
         { error: "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS" },
         { status: 422 }
       );
+    }
+
+    // Live outbound community handshake
+    try {
+      await fetch("https://api.centralgrid.org/community/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          githubUrl,
+          emailEndpoint,
+          engineeringVector,
+          complexityScore,
+        }),
+      });
+    } catch (webhookError) {
+      console.warn("Outbound community gateway handshake failed:", webhookError);
     }
 
     // Successful zero-trust telemetry compilation clearance
