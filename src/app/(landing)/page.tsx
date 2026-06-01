@@ -128,15 +128,19 @@ export default function CentralGridLandingFloor() {
 
       if (response.ok && data.success) {
         const centralGridProfile = {
-          username: github.split('/').pop() || 'guest_builder',
-          email: email,
-          vector: vector
+          username: data.profile?.github_username || github.split('/').pop() || 'guest_builder',
+          email: data.profile?.secure_email || email,
+          vector: data.profile?.engineering_vector || vector
         };
         sessionStorage.setItem('tcg_session_manifest', JSON.stringify(centralGridProfile));
         router.push("/onboarding/welcome");
       } else {
+        let displayError = data.error || "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS";
+        if (response.status === 403 && data.error === "INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS") {
+          displayError = "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS";
+        }
         setErrors({
-          github: data.error || "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS",
+          github: displayError,
         });
         setIsParsing(false);
       }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 interface IngressManifestPayload {
   engineeringVector: "fullstack" | "frontend" | "ai" | "devops";
@@ -39,150 +39,85 @@ export async function POST(request: Request) {
       );
     }
 
-    // Query GitHub events endpoint
+    // Execute server-to-server fetch request targeting native GitHub REST API
+    const token = process.env.GITHUB_ACCESS_TOKEN;
     const githubRes = await fetch(
-      `https://api.github.com/users/${username}/events`,
+      `https://api.github.com/users/${username}`,
       {
         headers: {
           "User-Agent": "Central-Grid-Ingress-Gatekeeper",
+          ...(token ? { Authorization: `token ${token}` } : {}),
         },
-        next: { revalidate: 60 },
       }
     );
 
-    let events: any[] = [];
-    if (githubRes.status === 200) {
-      events = await githubRes.json();
-    } else if (githubRes.status === 403 || githubRes.status === 429) {
-      // Graceful fallback for API Rate Limits during high-density validation testing
-      const fallbackScore = username.length * 15;
-      if (fallbackScore < 100) {
-        return NextResponse.json(
-          { error: "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS" },
-          { status: 422 }
-        );
-      }
-      const ingressToken = `IG-RL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
-      // Supabase Ledger Appends: Insert verified builder credentials (fallback)
-      try {
-        await supabase
-          .from("verified_builders")
-          .insert([
-            {
-              engineering_vector: engineeringVector,
-              github_url: githubUrl,
-              email_endpoint: emailEndpoint,
-              complexity_score: fallbackScore,
-              ingress_token: ingressToken,
-              created_at: new Date().toISOString(),
-            }
-          ]);
-      } catch (supabaseError) {
-        console.warn("Supabase ledger fallback append exception:", supabaseError);
-      }
-
-      return NextResponse.json({
-        success: true,
-        complexityScore: fallbackScore,
-        ingressToken,
-        simulated: true,
-      });
-    } else if (githubRes.status === 404) {
+    if (githubRes.status === 404) {
       return NextResponse.json(
         { error: "[LINT_FAIL]: INVALID_GITHUB_PROFILE" },
         { status: 422 }
       );
-    } else {
+    }
+
+    if (!githubRes.ok) {
       return NextResponse.json(
-        { error: "[LINT_FAIL]: UPSTREAM_GATEWAY_TIMEOUT" },
+        { error: `[LINT_FAIL]: GITHUB_API_ERROR_CODE_${githubRes.status}` },
         { status: 502 }
       );
     }
 
-    // Calculate commit densities & complexity ratios over last 30 days
-    const pushEvents = events.filter((e) => e.type === "PushEvent");
-    let totalCommits = 0;
-    let complexCommits = 0;
+    const githubData = await githubRes.json();
+    const publicRepos = githubData.public_repos ?? 0;
 
-    pushEvents.forEach((event) => {
-      const commits = event.payload?.commits || [];
-      totalCommits += commits.length;
-      commits.forEach((c: any) => {
-        const msg = (c.message || "").toLowerCase();
-        // Skip superficial package locks, markdown edits, merge conflicts, and formatting typos
-        const isSuperficial =
-          msg.includes("readme") ||
-          msg.includes("bump") ||
-          msg.includes("merge") ||
-          msg.includes("package-lock") ||
-          msg.includes("typo") ||
-          msg.includes("fix copy");
-        if (!isSuperficial) {
-          complexCommits++;
-        }
-      });
-    });
-
-    const complexityScore =
-      totalCommits > 0 ? Math.round((complexCommits / totalCommits) * 100) : 0;
-
-    // Fail ingress validation if events density is shallow or complexity score drops below system floor
-    if (events.length < 4 || (totalCommits > 0 && complexityScore < 40)) {
+    // Enforce Linter Gate Thresholds: Must contain at least 5 public repositories
+    if (publicRepos < 5) {
       return NextResponse.json(
-        { error: "[LINT_FAIL]: INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS" },
-        { status: 422 }
+        { error: "INSUFFICIENT_COMMIT_VELOCITY_FOR_INGRESS" },
+        { status: 403 }
       );
     }
 
-    // Live outbound community handshake
-    try {
-      await fetch("https://api.centralgrid.org/community/webhook", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    // Initialize the backend Supabase client using administrative SUPABASE_SERVICE_ROLE_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fmpvqyogbxnpezjozdja.supabase.co";
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    
+    if (!supabaseServiceKey) {
+      console.error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Database Mutation: Upsert directly into profiles
+    const { data: profile, error: dbError } = await supabaseAdmin
+      .from("profiles")
+      .upsert(
+        {
+          github_username: username,
+          secure_email: emailEndpoint,
+          engineering_vector: engineeringVector,
+          commit_frequency: "LIVE_TIMELINE_ACTIVE",
+          ingress_status: "VERIFIED",
+          audit_status: "CLEAR",
+          created_at: new Date().toISOString()
         },
-        body: JSON.stringify({
-          githubUrl,
-          emailEndpoint,
-          engineeringVector,
-          complexityScore,
-        }),
-      });
-    } catch (webhookError) {
-      console.warn("Outbound community gateway handshake failed:", webhookError);
+        { onConflict: "github_username" }
+      )
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error("Supabase upsert error:", dbError);
+      return NextResponse.json(
+        { error: "[LINT_FAIL]: DATABASE_MUTATION_FAILED" },
+        { status: 500 }
+      );
     }
 
-    const ingressToken = `IG-CORE-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-
-    // Supabase Ledger Appends: Insert verified builder credentials
-    try {
-      const { error: dbError } = await supabase
-        .from("verified_builders")
-        .insert([
-          {
-            engineering_vector: engineeringVector,
-            github_url: githubUrl,
-            email_endpoint: emailEndpoint,
-            complexity_score: complexityScore,
-            ingress_token: ingressToken,
-            created_at: new Date().toISOString(),
-          }
-        ]);
-      if (dbError) {
-        console.error("Supabase verified_builders insert error:", dbError);
-      }
-    } catch (supabaseError) {
-      console.warn("Supabase ledger append execution exception:", supabaseError);
-    }
-
-    // Successful zero-trust telemetry compilation clearance
     return NextResponse.json({
       success: true,
-      complexityScore,
-      ingressToken,
+      profile,
     });
   } catch (err) {
+    console.error("Ingress system processing exception:", err);
     return NextResponse.json(
       { error: "[LINT_FAIL]: SYSTEM_PARSING_COMPILER_EXCEPTION" },
       { status: 500 }
