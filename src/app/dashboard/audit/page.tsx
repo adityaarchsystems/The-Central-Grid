@@ -40,35 +40,21 @@ export default function CapabilityAuditPage() {
     setIsMounted(true);
 
     // Pull saved system profile context tokens
-    let profile = {
-      email: "anonymous@centralgrid.com",
-      githubUrl: "https://github.com/anonymous",
-      engineeringVector: "fullstack",
-      complexityScore: 75,
-      ingressToken: "INGRESS_NODE_0492"
+    let session = {
+      username: "guest_builder",
+      email: "guest@centralgrid.com",
+      vector: "fullstack"
     };
 
-    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
     if (stored) {
       try {
-        profile = JSON.parse(stored);
+        session = JSON.parse(stored);
       } catch (e) {
-        console.error("Failed to parse cg_user_profile:", e);
+        console.error("Failed to parse tcg_session_manifest:", e);
       }
     }
 
-    const getGithubUsername = (url: string) => {
-      if (!url) return "anonymous";
-      try {
-        const cleanUrl = url.replace(/\/$/, "");
-        const parts = cleanUrl.split("/");
-        return parts[parts.length - 1] || "anonymous";
-      } catch {
-        return "anonymous";
-      }
-    };
-
-    const username = getGithubUsername(profile.githubUrl);
     const vectorLabelMap: Record<string, string> = {
       fullstack: "Full Stack Optimization",
       frontend: "UI/UX Systems & Frontend",
@@ -76,11 +62,12 @@ export default function CapabilityAuditPage() {
       devops: "DevOps & Edge Architecture"
     };
     
-    const userVectorLabel = vectorLabelMap[profile.engineeringVector] || "Full Stack Optimization";
-    const userCommits = `${Math.round(profile.complexityScore * 6.5)} commits/yr`;
+    const userVectorLabel = vectorLabelMap[session.vector] || "Full Stack Optimization";
+    const baseCommits = session.username === "guest_builder" ? 482 : Math.round(session.username.length * 52 + 120);
+    const userCommits = `${baseCommits} commits/yr`;
 
     const userRow: AuditEntry = {
-      ingressId: `ING_${username.toUpperCase()}`,
+      ingressId: `ING_${session.username.toUpperCase()}`,
       targetVector: userVectorLabel,
       githubFootprintStatus: "VERIFIED",
       commitFrequency: userCommits,
@@ -98,25 +85,25 @@ export default function CapabilityAuditPage() {
     setEntries(initialEntries);
 
     const streamLogs = [
-      `[AUDIT]: Starting capability verification loop for ${username.toUpperCase()}...`,
+      `[AUDIT]: Starting capability verification loop for ${session.username}...`,
       `[AUDIT]: Accessing local network corridor gateways...`,
-      `[AUDIT]: Initializing git-footprint telemetry pipeline for ${profile.email}...`,
+      `[AUDIT]: Initializing git-footprint telemetry pipeline for ${session.email}...`,
       `[AUDIT]: Connecting to regional API endpoints... SECURE`,
-      `[AUDIT]: Parsing structural repo patterns for ${profile.engineeringVector.toUpperCase()}... CLEAR`,
+      `[AUDIT]: Parsing structural repo patterns for ${session.vector.toUpperCase()}... CLEAR`,
     ];
     setTerminalLogs(streamLogs);
 
     // Stream additions
     const streamItems = [
-      `[AUDIT]: User session detected for ${profile.email.toUpperCase()}...`,
+      `[AUDIT]: User session detected for ${session.email.toUpperCase()}...`,
       `[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE`,
       `[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE`,
-      `[AUDIT]: Evaluating Ingress ID ING_8921 github footprint...`,
+      `[AUDIT]: Evaluating Ingress ID ING_${session.username.toUpperCase()} github footprint...`,
       `[AUDIT]: Computing delta commit patterns... STABLE`,
       `[AUDIT]: Parsing structural repo patterns... CLEAR`,
       `[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms`,
       `[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES`,
-      `[AUDIT]: Handshake status for ING_${username.toUpperCase()}... APPROVED`,
+      `[AUDIT]: Handshake status for ING_${session.username.toUpperCase()}... APPROVED`,
       `[AUDIT]: Waiting for next telemetry ingress sequence...`,
     ];
 

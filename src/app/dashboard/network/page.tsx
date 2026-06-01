@@ -22,36 +22,21 @@ export default function ComputeNetworkPage() {
     setSystemTime(new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC");
 
     // Pull saved system profile context tokens
-    let profile = {
-      email: "anonymous@centralgrid.com",
-      githubUrl: "https://github.com/anonymous",
-      engineeringVector: "fullstack",
-      complexityScore: 75,
-      ingressToken: "INGRESS_NODE_0492"
+    let session = {
+      username: "guest_builder",
+      email: "guest@centralgrid.com",
+      vector: "fullstack"
     };
 
-    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
     if (stored) {
       try {
-        profile = JSON.parse(stored);
+        session = JSON.parse(stored);
       } catch (e) {
-        console.error("Failed to parse cg_user_profile:", e);
+        console.error("Failed to parse tcg_session_manifest:", e);
       }
     }
 
-    const getGithubUsername = (url: string) => {
-      if (!url) return "anonymous";
-      try {
-        const cleanUrl = url.replace(/\/$/, "");
-        const parts = cleanUrl.split("/");
-        return parts[parts.length - 1] || "anonymous";
-      } catch {
-        return "anonymous";
-      }
-    };
-
-    const username = getGithubUsername(profile.githubUrl);
-    
     // Map vector rank
     const rankMap: Record<string, string> = {
       fullstack: "STAGING_T1",
@@ -59,13 +44,13 @@ export default function ComputeNetworkPage() {
       ai: "CLUSTER_CORE",
       devops: "MATRIX_ARCH"
     };
-    const userRank = rankMap[profile.engineeringVector] || "STAGING_T1";
-    const userSpeed = parseFloat((profile.complexityScore * 1.2).toFixed(1));
+    const userRank = rankMap[session.vector] || "STAGING_T1";
+    const userSpeed = session.username === "guest_builder" ? 90.0 : parseFloat((session.username.length * 11.2 + 35).toFixed(1));
 
     const userNode: ComputeNode = {
-      identifier: `NODE_${username.toUpperCase()}`,
+      identifier: `NODE_${session.username.toUpperCase()}`,
       hardware: "RTX 5060 Ti 16GB",
-      engine: `${profile.engineeringVector}_optimized // dynamic`,
+      engine: `${session.vector}_optimized // dynamic`,
       baseSpeed: userSpeed,
       speedUnit: "tok/s",
       rank: userRank

@@ -127,14 +127,12 @@ export default function CentralGridLandingFloor() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        const userProfile = {
-          email,
-          githubUrl: github,
-          engineeringVector: vector,
-          complexityScore: data.complexityScore,
-          ingressToken: data.ingressToken,
+        const centralGridProfile = {
+          username: github.split('/').pop() || 'guest_builder',
+          email: email,
+          vector: vector
         };
-        localStorage.setItem("cg_user_profile", JSON.stringify(userProfile));
+        sessionStorage.setItem('tcg_session_manifest', JSON.stringify(centralGridProfile));
         router.push("/onboarding/welcome");
       } else {
         setErrors({

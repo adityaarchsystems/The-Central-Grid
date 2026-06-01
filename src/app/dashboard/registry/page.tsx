@@ -148,20 +148,18 @@ PersistentKeepalive = 25`
     setIsMounted(true);
 
     // Pull saved system profile context tokens
-    let profile = {
-      email: "anonymous@centralgrid.com",
-      githubUrl: "https://github.com/anonymous",
-      engineeringVector: "fullstack",
-      complexityScore: 75,
-      ingressToken: "INGRESS_NODE_0492"
+    let session = {
+      username: "guest_builder",
+      email: "guest@centralgrid.com",
+      vector: "fullstack"
     };
 
-    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    const stored = typeof window !== "undefined" ? sessionStorage.getItem("tcg_session_manifest") : null;
     if (stored) {
       try {
-        profile = JSON.parse(stored);
+        session = JSON.parse(stored);
       } catch (e) {
-        console.error("Failed to parse cg_user_profile:", e);
+        console.error("Failed to parse tcg_session_manifest:", e);
       }
     }
 
@@ -184,15 +182,22 @@ PersistentKeepalive = 25`
       codePayload: `# Force-clear server cache and run production build\nRemove-Item -Path ".next" -Force -Recurse -ErrorAction SilentlyContinue\nnpm run build\nvercel deploy --prod --yes`
     };
 
-    const isFullstack = profile.engineeringVector === "fullstack";
-    const dynamicEntries = isFullstack ? [nextOptimizeSpec, ...baseEntries] : baseEntries;
-    setEntries(dynamicEntries);
+    const allSpecs = [nextOptimizeSpec, ...baseEntries];
 
-    if (isFullstack) {
-      setSelectedEntryId("999");
-    } else {
-      setSelectedEntryId("042");
-    }
+    const vectorPriorityMap: Record<string, string> = {
+      fullstack: "999",
+      ai: "091",
+      devops: "115",
+      frontend: "042"
+    };
+
+    const targetPriorityId = vectorPriorityMap[session.vector] || "999";
+    const prioritySpec = allSpecs.find(spec => spec.id === targetPriorityId);
+    const otherSpecs = allSpecs.filter(spec => spec.id !== targetPriorityId);
+
+    const dynamicEntries = prioritySpec ? [prioritySpec, ...otherSpecs] : allSpecs;
+    setEntries(dynamicEntries);
+    setSelectedEntryId(targetPriorityId);
   }, []);
 
   const activeEntry = entries.find((e) => e.id === selectedEntryId) || entries[0] || baseEntries[0];
