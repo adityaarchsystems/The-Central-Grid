@@ -319,7 +319,7 @@ PersistentKeepalive = 25`
             <span className="font-mono text-[9px] text-[#c084fc] uppercase tracking-widest block">
               // CODE_PAYLOAD_EXECUTION_MATRIX
             </span>
-            <div className="bg-black/80 border border-white/5 rounded-lg p-5 font-mono text-[11px] leading-relaxed text-neutral-300 overflow-x-auto whitespace-pre">
+            <div className="bg-[#0a0613]/50 border border-[#120e1e] rounded-lg p-6 pb-8 font-mono text-[12px] text-neutral-400 overflow-x-auto whitespace-pre">
               {activeEntry.codePayload}
             </div>
           </div>

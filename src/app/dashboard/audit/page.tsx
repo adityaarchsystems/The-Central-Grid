@@ -63,14 +63,12 @@ export default function CapabilityAuditPage() {
     };
     
     const userVectorLabel = vectorLabelMap[session.vector] || "Full Stack Optimization";
-    const baseCommits = session.username === "guest_builder" ? 482 : Math.round(session.username.length * 52 + 120);
-    const userCommits = `${baseCommits} commits/yr`;
 
     const userRow: AuditEntry = {
       ingressId: `ING_${session.username.toUpperCase()}`,
       targetVector: userVectorLabel,
       githubFootprintStatus: "VERIFIED",
-      commitFrequency: userCommits,
+      commitFrequency: "LIVE_TIMELINE_ACTIVE",
       auditStatus: "CLEAR"
     };
 
