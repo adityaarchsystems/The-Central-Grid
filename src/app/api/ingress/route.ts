@@ -41,15 +41,27 @@ export async function POST(request: Request) {
 
     // Execute server-to-server fetch request targeting native GitHub REST API
     const token = process.env.GITHUB_ACCESS_TOKEN;
+    const headersInit: Record<string, string> = {
+      "User-Agent": "Central-Grid-Ingress-Gatekeeper",
+      "Accept": "application/vnd.github.v3+json"
+    };
+    if (token && !token.includes("your_personal_github_token_here")) {
+      headersInit["Authorization"] = `Bearer ${token}`;
+    }
+
     const githubRes = await fetch(
       `https://api.github.com/users/${username}`,
       {
-        headers: {
-          "User-Agent": "Central-Grid-Ingress-Gatekeeper",
-          ...(token ? { Authorization: `token ${token}` } : {}),
-        },
+        headers: headersInit,
       }
     );
+
+    if (githubRes.status === 403) {
+      return NextResponse.json(
+        { error: "[LINT_FAIL]: GITHUB_API_ERROR_CODE_403" },
+        { status: 403 }
+      );
+    }
 
     if (githubRes.status === 404) {
       return NextResponse.json(

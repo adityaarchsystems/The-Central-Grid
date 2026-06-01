@@ -82,6 +82,16 @@ export default function CapabilityAuditPage() {
 
         if (error) {
           addLog(`[DATABASE_ERROR]: Failed to query public.profiles: ${error.message}`);
+          const isAuthError = 
+            error.message?.toLowerCase().includes("invalid api key") || 
+            error.message?.toLowerCase().includes("anon") || 
+            error.message?.toLowerCase().includes("auth") || 
+            error.code === "PGRST301";
+          
+          if (isAuthError) {
+            addLog("[DATABASE_ERROR]: Gracefully caught connection authorization failure. Falling back to clean empty ledger state.");
+            setEntries([]);
+          }
           return;
         }
 
@@ -98,6 +108,7 @@ export default function CapabilityAuditPage() {
         }
       } catch (e: any) {
         addLog(`[SYSTEM_ERROR]: Exception during cold query initialization: ${e?.message || e}`);
+        setEntries([]);
       }
     };
 

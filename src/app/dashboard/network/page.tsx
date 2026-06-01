@@ -134,9 +134,12 @@ export default function ComputeNetworkPage() {
         speedUnit: "x ACCEL", 
         rank: "INFRA_CORE" 
       },
-      userNode,
       ...uniqueBackgroundNodes
     ];
+
+    if (stored) {
+      initialNodes.push(userNode);
+    }
 
     setNodes(initialNodes);
 
