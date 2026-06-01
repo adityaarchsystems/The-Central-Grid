@@ -377,7 +377,7 @@ export default function CentralGridLandingFloor() {
                     id="submit-manifest-button"
                     type="submit" 
                     disabled={isParsing}
-                    className="w-full bg-white hover:bg-neutral-200 text-black font-mono font-medium py-3 rounded text-[11px] tracking-widest uppercase transition-all duration-200 mt-4 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-white text-black font-sans font-bold text-[13px] uppercase tracking-wider rounded-lg transition-all duration-300 hover:bg-neutral-200 active:scale-[0.99] block disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer mt-4"
                   >
                     {isParsing ? "// PARSING_TELEMETRY..." : "SUBMIT SPECIFICATION MANIFEST"}
                   </button>
@@ -619,9 +619,9 @@ export default function CentralGridLandingFloor() {
             <table className="w-full text-left font-mono text-[12px] border-collapse min-w-[700px] select-text">
               <thead className="border-b border-white/5 text-neutral-500 bg-black/40">
                 <tr className="uppercase">
-                  <th className="py-3 px-6 text-left font-mono text-[10px] tracking-wider uppercase font-semibold">SPEC_CODE</th>
-                  <th className="py-3 px-6 text-left font-mono text-[10px] tracking-wider uppercase font-semibold">TECHNICAL_SPECIFICATION_MANIFEST</th>
-                  <th className="py-3 px-6 text-right font-mono text-[10px] tracking-wider uppercase font-semibold">CORE_VECTOR_CHANNEL</th>
+                  <th className="text-[#4b5563] font-mono text-[10px] uppercase tracking-widest text-left pb-3 border-b border-[#120e1e] px-6">SPEC_CODE</th>
+                  <th className="text-[#4b5563] font-mono text-[10px] uppercase tracking-widest text-left pb-3 border-b border-[#120e1e] px-6">TECHNICAL_SPECIFICATION_MANIFEST</th>
+                  <th className="text-[#4b5563] font-mono text-[10px] uppercase tracking-widest text-right pb-3 border-b border-[#120e1e] px-6">CORE_VECTOR_CHANNEL</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-neutral-400 font-mono text-[12px]">
