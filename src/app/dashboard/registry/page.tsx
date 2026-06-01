@@ -195,7 +195,19 @@ PersistentKeepalive = 25`
     const prioritySpec = allSpecs.find(spec => spec.id === targetPriorityId);
     const otherSpecs = allSpecs.filter(spec => spec.id !== targetPriorityId);
 
-    const dynamicEntries = prioritySpec ? [prioritySpec, ...otherSpecs] : allSpecs;
+    // Shuffle the background protocol release components dynamically
+    const shuffledOthers = [...otherSpecs].sort(() => 0.5 - Math.random());
+    
+    // Vary their metadata dates programmatically to prevent pre-baked look
+    const dynamicOthers = shuffledOthers.map((spec) => {
+      const randomMinutes = Math.floor(Math.random() * 55 + 5);
+      return {
+        ...spec,
+        date: spec.date.replace("RELEASE", `RELEASE // CH_${randomMinutes}m_AGO`)
+      };
+    });
+
+    const dynamicEntries = prioritySpec ? [prioritySpec, ...dynamicOthers] : allSpecs;
     setEntries(dynamicEntries);
     setSelectedEntryId(targetPriorityId);
   }, []);

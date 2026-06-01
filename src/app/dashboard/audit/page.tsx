@@ -72,13 +72,39 @@ export default function CapabilityAuditPage() {
       auditStatus: "CLEAR"
     };
 
+    const possibleUsernames = [
+      "STACK_ARCHITECT", "DEV_CORE_ALPHA", "INF_NODE_X", "EDGE_ROUTING_PEER", 
+      "ML_SWARM_LEAD", "PROT_GATE_WAY", "CENTRAL_GATE", "METRO_CORE", 
+      "VRAM_LIMIT_CONT", "STAGING_ANCHOR"
+    ];
+
+    const vectors = [
+      "AI Core & Local Inference",
+      "UI/UX Systems & Frontend",
+      "DevOps & Edge Architecture",
+      "Full Stack Optimization"
+    ];
+
+    const procedurals = possibleUsernames.map((uname, index) => {
+      const targetVector = vectors[index % vectors.length];
+      const footprint = index % 3 === 2 ? "FLAGGED" : index % 3 === 1 ? "COMPILING" : "VERIFIED";
+      const status: "CLEAR" | "WAITING" | "ERROR" = footprint === "FLAGGED" ? "ERROR" : footprint === "COMPILING" ? "WAITING" : "CLEAR";
+      const commits = `${Math.floor(140 + Math.random() * 1040)} commits/yr`;
+      
+      return {
+        ingressId: `ING_${uname}`,
+        targetVector,
+        githubFootprintStatus: footprint,
+        commitFrequency: commits,
+        auditStatus: status
+      } as AuditEntry;
+    });
+
+    const shuffled = [...procedurals].sort(() => 0.5 - Math.random()).slice(0, 5);
+
     const initialEntries: AuditEntry[] = [
       userRow,
-      { ingressId: "INGRESS_NODE_1204", targetVector: "UI/UX Systems & Frontend", githubFootprintStatus: "VERIFIED", commitFrequency: "912 commits/yr", auditStatus: "CLEAR" },
-      { ingressId: "INGRESS_NODE_8921", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "COMPILING", commitFrequency: "320 commits/yr", auditStatus: "WAITING" },
-      { ingressId: "INGRESS_NODE_0953", targetVector: "Full Stack Optimization", githubFootprintStatus: "VERIFIED", commitFrequency: "740 commits/yr", auditStatus: "CLEAR" },
-      { ingressId: "INGRESS_NODE_3412", targetVector: "AI Core & Local Inference", githubFootprintStatus: "PENDING", commitFrequency: "115 commits/yr", auditStatus: "WAITING" },
-      { ingressId: "INGRESS_NODE_6721", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "FLAGGED", commitFrequency: "12 commits/yr", auditStatus: "ERROR" },
+      ...shuffled
     ];
     setEntries(initialEntries);
 

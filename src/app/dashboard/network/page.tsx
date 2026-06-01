@@ -45,7 +45,7 @@ export default function ComputeNetworkPage() {
       devops: "MATRIX_ARCH"
     };
     const userRank = rankMap[session.vector] || "STAGING_T1";
-    const userSpeed = session.username === "guest_builder" ? 90.0 : parseFloat((session.username.length * 11.2 + 35).toFixed(1));
+    const userSpeed = 225.8;
 
     const userNode: ComputeNode = {
       identifier: `NODE_${session.username.toUpperCase()}`,
@@ -56,12 +56,71 @@ export default function ComputeNetworkPage() {
       rank: userRank
     };
 
+    const corridorLocations = ["RAIPUR", "BHILAI", "DURG", "BILASPUR", "KORBA", "BHUBANESWAR", "HYDERABAD"];
+    const rigHardwareOptions = [
+      "Dual RTX 4090 Ded.",
+      "Dual H100 Ded.",
+      "Dual A100 80GB",
+      "Apple M3 Max 128GB",
+      "RTX 4080 Super 16GB",
+      "RTX 5090 Ti Prototype"
+    ];
+    const engines = [
+      "llama_3.1_70b // q4_k_m",
+      "gemma_2_27b // mlx_core",
+      "llama_3.1_8b // vllm",
+      "llama_3.1_405b // q8_0",
+      "phi_3_medium // quantized",
+      "mistral_nemo_12b // edge"
+    ];
+    const ranks = ["MATRIX_ARCH", "BUILDER_T2", "STAGING_T1", "CLUSTER_CORE", "CORE_ROUTER"];
+
+    const backgroundNodes = Array.from({ length: 5 }).map((_, i) => {
+      const location = corridorLocations[Math.floor(Math.random() * corridorLocations.length)];
+      const num = Math.floor(Math.random() * 9 + 1);
+      const hardware = rigHardwareOptions[Math.floor(Math.random() * rigHardwareOptions.length)];
+      const engine = engines[Math.floor(Math.random() * engines.length)];
+      const rank = ranks[Math.floor(Math.random() * ranks.length)];
+      const baseSpeed = parseFloat((25 + Math.random() * 150).toFixed(1));
+
+      return {
+        identifier: `NODE_${location}_0${num}`,
+        hardware,
+        engine,
+        baseSpeed,
+        speedUnit: "tok/s",
+        rank
+      } as ComputeNode;
+    });
+
+    const uniqueBackgroundNodes: ComputeNode[] = [];
+    const usedIds = new Set<string>();
+    backgroundNodes.forEach(node => {
+      if (!usedIds.has(node.identifier)) {
+        usedIds.add(node.identifier);
+        uniqueBackgroundNodes.push(node);
+      }
+    });
+    while (uniqueBackgroundNodes.length < 4) {
+      const location = corridorLocations[Math.floor(Math.random() * corridorLocations.length)];
+      const num = Math.floor(Math.random() * 9 + 1);
+      const id = `NODE_${location}_0${num}`;
+      if (!usedIds.has(id)) {
+        usedIds.add(id);
+        uniqueBackgroundNodes.push({
+          identifier: id,
+          hardware: rigHardwareOptions[Math.floor(Math.random() * rigHardwareOptions.length)],
+          engine: engines[Math.floor(Math.random() * engines.length)],
+          baseSpeed: parseFloat((25 + Math.random() * 150).toFixed(1)),
+          speedUnit: "tok/s",
+          rank: ranks[Math.floor(Math.random() * ranks.length)]
+        });
+      }
+    }
+
     const initialNodes: ComputeNode[] = [
       { identifier: "MASTER_NODE_ALPHA", hardware: "RTX 5060 Ti 16GB", engine: "f5-tts_flow_match // VBR", baseSpeed: 4.0, speedUnit: "x ACCEL", rank: "INFRA_CORE" },
-      { identifier: "NODE_RAIPUR_01", hardware: "Dual RTX 4090 Ded.", engine: "llama_3.1_70b // q4_k_m", baseSpeed: 78.4, speedUnit: "tok/s", rank: "MATRIX_ARCH" },
-      { identifier: "NODE_BHILAI_02", hardware: "Apple M3 Max 64GB", engine: "gemma_2_27b // mlx_core", baseSpeed: 42.0, speedUnit: "tok/s", rank: "BUILDER_T2" },
-      { identifier: "NODE_DURG_01", hardware: "RTX 4070 Ti 12GB", engine: "llama_3.1_8b // vllm", baseSpeed: 115.0, speedUnit: "tok/s", rank: "STAGING_T1" },
-      { identifier: "NODE_RAIPUR_02", hardware: "Dual H100 Ded.", engine: "llama_3.1_405b // q8_0", baseSpeed: 18.2, speedUnit: "tok/s", rank: "CLUSTER_CORE" },
+      ...uniqueBackgroundNodes,
       userNode
     ];
 
@@ -75,13 +134,25 @@ export default function ComputeNetworkPage() {
       setNodes((prevNodes) => {
         if (prevNodes.length === 0) return initialNodes;
         return prevNodes.map((node) => {
-          // Stagger speed metrics by +/- 2.5% dynamically
-          const variance = (Math.random() * 5 - 2.5) / 100;
-          const nextSpeed = node.baseSpeed * (1 + variance);
-          return {
-            ...node,
-            baseSpeed: parseFloat(nextSpeed.toFixed(1)),
-          };
+          const isUserNode = node.identifier === `NODE_${session.username.toUpperCase()}`;
+          if (isUserNode) {
+            // Fluctuate strictly between 225.4 and 226.3
+            const delta = Math.random() * 0.9 - 0.45; // -0.45 to +0.45
+            let nextSpeed = 225.8 + delta;
+            if (nextSpeed < 225.4) nextSpeed = 225.4;
+            if (nextSpeed > 226.3) nextSpeed = 226.3;
+            return {
+              ...node,
+              baseSpeed: parseFloat(nextSpeed.toFixed(1))
+            };
+          } else {
+            const variance = (Math.random() * 5 - 2.5) / 100;
+            const nextSpeed = node.baseSpeed * (1 + variance);
+            return {
+              ...node,
+              baseSpeed: parseFloat(nextSpeed.toFixed(1)),
+            };
+          }
         });
       });
     }, 6000);
