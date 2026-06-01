@@ -14,26 +14,82 @@ interface ComputeNode {
 export default function ComputeNetworkPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [systemTime, setSystemTime] = useState("");
-  const [nodes, setNodes] = useState<ComputeNode[]>([
-    { identifier: "MASTER_NODE_ALPHA", hardware: "RTX 5060 Ti 16GB", engine: "f5-tts_flow_match // VBR", baseSpeed: 4.0, speedUnit: "x ACCEL", rank: "INFRA_CORE" },
-    { identifier: "NODE_RAIPUR_01", hardware: "Dual RTX 4090 Ded.", engine: "llama_3.1_70b // q4_k_m", baseSpeed: 78.4, speedUnit: "tok/s", rank: "MATRIX_ARCH" },
-    { identifier: "NODE_BHILAI_02", hardware: "Apple M3 Max 64GB", engine: "gemma_2_27b // mlx_core", baseSpeed: 42.0, speedUnit: "tok/s", rank: "BUILDER_T2" },
-    { identifier: "NODE_DURG_01", hardware: "RTX 4070 Ti 12GB", engine: "llama_3.1_8b // vllm", baseSpeed: 115.0, speedUnit: "tok/s", rank: "STAGING_T1" },
-    { identifier: "NODE_RAIPUR_02", hardware: "Dual H100 Ded.", engine: "llama_3.1_405b // q8_0", baseSpeed: 18.2, speedUnit: "tok/s", rank: "CLUSTER_CORE" },
-  ]);
+  const [nodes, setNodes] = useState<ComputeNode[]>([]);
 
   // Client simulated latency / speed fluctuations
   useEffect(() => {
     setIsMounted(true);
     setSystemTime(new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC");
 
+    // Pull saved system profile context tokens
+    let profile = {
+      email: "anonymous@centralgrid.com",
+      githubUrl: "https://github.com/anonymous",
+      engineeringVector: "fullstack",
+      complexityScore: 75,
+      ingressToken: "INGRESS_NODE_0492"
+    };
+
+    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    if (stored) {
+      try {
+        profile = JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse cg_user_profile:", e);
+      }
+    }
+
+    const getGithubUsername = (url: string) => {
+      if (!url) return "anonymous";
+      try {
+        const cleanUrl = url.replace(/\/$/, "");
+        const parts = cleanUrl.split("/");
+        return parts[parts.length - 1] || "anonymous";
+      } catch {
+        return "anonymous";
+      }
+    };
+
+    const username = getGithubUsername(profile.githubUrl);
+    
+    // Map vector rank
+    const rankMap: Record<string, string> = {
+      fullstack: "STAGING_T1",
+      frontend: "BUILDER_T2",
+      ai: "CLUSTER_CORE",
+      devops: "MATRIX_ARCH"
+    };
+    const userRank = rankMap[profile.engineeringVector] || "STAGING_T1";
+    const userSpeed = parseFloat((profile.complexityScore * 1.2).toFixed(1));
+
+    const userNode: ComputeNode = {
+      identifier: `NODE_${username.toUpperCase()}`,
+      hardware: "RTX 5060 Ti 16GB",
+      engine: `${profile.engineeringVector}_optimized // dynamic`,
+      baseSpeed: userSpeed,
+      speedUnit: "tok/s",
+      rank: userRank
+    };
+
+    const initialNodes: ComputeNode[] = [
+      { identifier: "MASTER_NODE_ALPHA", hardware: "RTX 5060 Ti 16GB", engine: "f5-tts_flow_match // VBR", baseSpeed: 4.0, speedUnit: "x ACCEL", rank: "INFRA_CORE" },
+      { identifier: "NODE_RAIPUR_01", hardware: "Dual RTX 4090 Ded.", engine: "llama_3.1_70b // q4_k_m", baseSpeed: 78.4, speedUnit: "tok/s", rank: "MATRIX_ARCH" },
+      { identifier: "NODE_BHILAI_02", hardware: "Apple M3 Max 64GB", engine: "gemma_2_27b // mlx_core", baseSpeed: 42.0, speedUnit: "tok/s", rank: "BUILDER_T2" },
+      { identifier: "NODE_DURG_01", hardware: "RTX 4070 Ti 12GB", engine: "llama_3.1_8b // vllm", baseSpeed: 115.0, speedUnit: "tok/s", rank: "STAGING_T1" },
+      { identifier: "NODE_RAIPUR_02", hardware: "Dual H100 Ded.", engine: "llama_3.1_405b // q8_0", baseSpeed: 18.2, speedUnit: "tok/s", rank: "CLUSTER_CORE" },
+      userNode
+    ];
+
+    setNodes(initialNodes);
+
     const clockInterval = setInterval(() => {
       setSystemTime(new Date().toISOString().slice(0, 19).replace("T", " ") + " UTC");
     }, 1000);
 
     const speedInterval = setInterval(() => {
-      setNodes((prevNodes) =>
-        prevNodes.map((node) => {
+      setNodes((prevNodes) => {
+        if (prevNodes.length === 0) return initialNodes;
+        return prevNodes.map((node) => {
           // Stagger speed metrics by +/- 2.5% dynamically
           const variance = (Math.random() * 5 - 2.5) / 100;
           const nextSpeed = node.baseSpeed * (1 + variance);
@@ -41,8 +97,8 @@ export default function ComputeNetworkPage() {
             ...node,
             baseSpeed: parseFloat(nextSpeed.toFixed(1)),
           };
-        })
-      );
+        });
+      });
     }, 6000);
 
     return () => {

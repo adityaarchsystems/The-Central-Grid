@@ -20,7 +20,9 @@ export default function CoreBuildRegistryPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState("042");
 
-  const registryEntries: RegistryEntry[] = [
+  const [entries, setEntries] = useState<RegistryEntry[]>([]);
+
+  const baseEntries: RegistryEntry[] = [
     {
       id: "042",
       ref: "[ENTRY_REF: #042] // F5-TTS VBR",
@@ -144,9 +146,56 @@ PersistentKeepalive = 25`
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Pull saved system profile context tokens
+    let profile = {
+      email: "anonymous@centralgrid.com",
+      githubUrl: "https://github.com/anonymous",
+      engineeringVector: "fullstack",
+      complexityScore: 75,
+      ingressToken: "INGRESS_NODE_0492"
+    };
+
+    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    if (stored) {
+      try {
+        profile = JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse cg_user_profile:", e);
+      }
+    }
+
+    const nextOptimizeSpec: RegistryEntry = {
+      id: "999",
+      ref: "[ENTRY_REF: #999] // NEXT-OPTIMIZE",
+      title: "NEXT.JS CORE CACHE & BUNDLE ARCHITECTURE",
+      category: "FULLSTACK_OPTIMIZATION",
+      date: "Q2 2026 // RELEASE",
+      description: "Full-stack Next.js cache clearance passes, bundle sizing controls, and static compile architecture benchmarks designed for high-density gateway node routing environments.",
+      tableData: {
+        headers: ["OPTIMIZATION TARGET", "METRIC VALUE", "BENCHMARK STATUS"],
+        rows: [
+          ["Turbopack Build", "1.5s Cold Compile", "Zero route warnings"],
+          ["Next Cache Clearance", "100% Cache Evacuated", "Clean Vercel Sync"],
+          ["Bundle Weight", "48 KB JS Chunk Limit", "Exceeds budgets"],
+          ["Static Page Yield", "8/8 Pre-rendered", "Verified runtime"]
+        ]
+      },
+      codePayload: `# Force-clear server cache and run production build\nRemove-Item -Path ".next" -Force -Recurse -ErrorAction SilentlyContinue\nnpm run build\nvercel deploy --prod --yes`
+    };
+
+    const isFullstack = profile.engineeringVector === "fullstack";
+    const dynamicEntries = isFullstack ? [nextOptimizeSpec, ...baseEntries] : baseEntries;
+    setEntries(dynamicEntries);
+
+    if (isFullstack) {
+      setSelectedEntryId("999");
+    } else {
+      setSelectedEntryId("042");
+    }
   }, []);
 
-  const activeEntry = registryEntries.find((e) => e.id === selectedEntryId) || registryEntries[0];
+  const activeEntry = entries.find((e) => e.id === selectedEntryId) || entries[0] || baseEntries[0];
 
   if (!isMounted) return <div className="min-h-screen bg-[#06030a]" />;
 
@@ -174,7 +223,7 @@ PersistentKeepalive = 25`
           </div>
           
           <div className="flex flex-col gap-3 font-mono text-[12px] pr-2">
-            {registryEntries.map((entry) => {
+            {entries.map((entry) => {
               const isSelected = entry.id === selectedEntryId;
               return (
                 <div

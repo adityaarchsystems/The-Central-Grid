@@ -24,14 +24,7 @@ export default function CapabilityAuditPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const mockEntries: AuditEntry[] = [
-    { ingressId: "INGRESS_NODE_0492", targetVector: "AI Core & Local Inference", githubFootprintStatus: "VERIFIED", commitFrequency: "482 commits/yr", auditStatus: "CLEAR" },
-    { ingressId: "INGRESS_NODE_1204", targetVector: "UI/UX Systems & Frontend", githubFootprintStatus: "VERIFIED", commitFrequency: "912 commits/yr", auditStatus: "CLEAR" },
-    { ingressId: "INGRESS_NODE_8921", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "COMPILING", commitFrequency: "320 commits/yr", auditStatus: "WAITING" },
-    { ingressId: "INGRESS_NODE_0953", targetVector: "Full Stack Optimization", githubFootprintStatus: "VERIFIED", commitFrequency: "740 commits/yr", auditStatus: "CLEAR" },
-    { ingressId: "INGRESS_NODE_3412", targetVector: "AI Core & Local Inference", githubFootprintStatus: "PENDING", commitFrequency: "115 commits/yr", auditStatus: "WAITING" },
-    { ingressId: "INGRESS_NODE_6721", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "FLAGGED", commitFrequency: "12 commits/yr", auditStatus: "ERROR" },
-  ];
+  const [entries, setEntries] = useState<AuditEntry[]>([]);
 
   // Initial terminal simulation strings
   const initialLogs = [
@@ -45,19 +38,86 @@ export default function CapabilityAuditPage() {
   // Simulated log streamer
   useEffect(() => {
     setIsMounted(true);
-    setTerminalLogs(initialLogs);
+
+    // Pull saved system profile context tokens
+    let profile = {
+      email: "anonymous@centralgrid.com",
+      githubUrl: "https://github.com/anonymous",
+      engineeringVector: "fullstack",
+      complexityScore: 75,
+      ingressToken: "INGRESS_NODE_0492"
+    };
+
+    const stored = typeof window !== "undefined" ? localStorage.getItem("cg_user_profile") : null;
+    if (stored) {
+      try {
+        profile = JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to parse cg_user_profile:", e);
+      }
+    }
+
+    const getGithubUsername = (url: string) => {
+      if (!url) return "anonymous";
+      try {
+        const cleanUrl = url.replace(/\/$/, "");
+        const parts = cleanUrl.split("/");
+        return parts[parts.length - 1] || "anonymous";
+      } catch {
+        return "anonymous";
+      }
+    };
+
+    const username = getGithubUsername(profile.githubUrl);
+    const vectorLabelMap: Record<string, string> = {
+      fullstack: "Full Stack Optimization",
+      frontend: "UI/UX Systems & Frontend",
+      ai: "AI Core & Local Inference",
+      devops: "DevOps & Edge Architecture"
+    };
+    
+    const userVectorLabel = vectorLabelMap[profile.engineeringVector] || "Full Stack Optimization";
+    const userCommits = `${Math.round(profile.complexityScore * 6.5)} commits/yr`;
+
+    const userRow: AuditEntry = {
+      ingressId: `ING_${username.toUpperCase()}`,
+      targetVector: userVectorLabel,
+      githubFootprintStatus: "VERIFIED",
+      commitFrequency: userCommits,
+      auditStatus: "CLEAR"
+    };
+
+    const initialEntries: AuditEntry[] = [
+      userRow,
+      { ingressId: "INGRESS_NODE_1204", targetVector: "UI/UX Systems & Frontend", githubFootprintStatus: "VERIFIED", commitFrequency: "912 commits/yr", auditStatus: "CLEAR" },
+      { ingressId: "INGRESS_NODE_8921", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "COMPILING", commitFrequency: "320 commits/yr", auditStatus: "WAITING" },
+      { ingressId: "INGRESS_NODE_0953", targetVector: "Full Stack Optimization", githubFootprintStatus: "VERIFIED", commitFrequency: "740 commits/yr", auditStatus: "CLEAR" },
+      { ingressId: "INGRESS_NODE_3412", targetVector: "AI Core & Local Inference", githubFootprintStatus: "PENDING", commitFrequency: "115 commits/yr", auditStatus: "WAITING" },
+      { ingressId: "INGRESS_NODE_6721", targetVector: "DevOps & Edge Architecture", githubFootprintStatus: "FLAGGED", commitFrequency: "12 commits/yr", auditStatus: "ERROR" },
+    ];
+    setEntries(initialEntries);
+
+    const streamLogs = [
+      `[AUDIT]: Starting capability verification loop for ${username.toUpperCase()}...`,
+      `[AUDIT]: Accessing local network corridor gateways...`,
+      `[AUDIT]: Initializing git-footprint telemetry pipeline for ${profile.email}...`,
+      `[AUDIT]: Connecting to regional API endpoints... SECURE`,
+      `[AUDIT]: Parsing structural repo patterns for ${profile.engineeringVector.toUpperCase()}... CLEAR`,
+    ];
+    setTerminalLogs(streamLogs);
 
     // Stream additions
     const streamItems = [
-      "[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE",
-      "[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE",
-      "[AUDIT]: Evaluating Ingress ID ING_8921 github footprint...",
-      "[AUDIT]: Computing delta commit patterns... STABLE",
-      "[AUDIT]: Parsing structural repo patterns... CLEAR",
-      "[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms",
-      "[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES",
-      "[AUDIT]: Handshake status for INGRESS_NODE_0492... APPROVED",
-      "[AUDIT]: Waiting for next telemetry ingress sequence...",
+      `[AUDIT]: User session detected for ${profile.email.toUpperCase()}...`,
+      `[COMPILE_TEST]: Testing local PyTorch hardware acceleration... ACTIVE`,
+      `[COMPILE_TEST]: VRAM allocation footprint checks... 16GB AVAILABLE`,
+      `[AUDIT]: Evaluating Ingress ID ING_8921 github footprint...`,
+      `[AUDIT]: Computing delta commit patterns... STABLE`,
+      `[AUDIT]: Parsing structural repo patterns... CLEAR`,
+      `[COMPILE_TEST]: Edge mesh latency handshake with Raipur-Hub-01... 4.8ms`,
+      `[AUDIT]: Compiling node dependency matrix... ZERO VULNERABILITIES`,
+      `[AUDIT]: Handshake status for ING_${username.toUpperCase()}... APPROVED`,
+      `[AUDIT]: Waiting for next telemetry ingress sequence...`,
     ];
 
     let count = 0;
@@ -67,7 +127,7 @@ export default function CapabilityAuditPage() {
         count++;
       } else {
         count = 0; // Loop logs
-        setTerminalLogs(initialLogs);
+        setTerminalLogs(streamLogs);
       }
     }, 4000);
 
@@ -139,7 +199,7 @@ export default function CapabilityAuditPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-neutral-400">
-              {mockEntries.map((entry, index) => (
+              {entries.map((entry, index) => (
                 <tr key={index} className="hover:bg-white/[0.02] transition-colors duration-150">
                   <td className="py-4 px-6 text-left text-white font-medium">{entry.ingressId}</td>
                   <td className="py-4 px-6 text-left">{entry.targetVector}</td>
